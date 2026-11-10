@@ -1,6 +1,6 @@
-# Petik — Chrome Extension (Manifest V3)
+# Paperlift — Chrome Extension (Manifest V3)
 
-(Dulu bernama "PDF Grabber"; diganti menjadi merek **Petik** pada 2026-11-10.)
+(Riwayat nama: "PDF Grabber" → "Petik" → **Paperlift** (2026-11-10, pilihan pengguna: nama bahasa Inggris).)
 
 ## Tujuan
 Mengunduh PDF yang sudah dimuat di halaman tetapi tombol download-nya disembunyikan
@@ -24,11 +24,12 @@ offscreen/offscreen.html/.js Halaman tersembunyi: blob URL, konversi gambar, pdf
 popup/popup.html/.css/.js    UI daftar PDF, bagian slide, progres
 lib/shared.js                Fungsi bersama SW + popup (nama file, gabung daftar). ES module.
 vendor/pdf-lib.min.js        pdf-lib 1.17.1 (MIT, lisensi di vendor/pdf-lib.LICENSE.md). Jangan diubah.
-icons/                       Ikon 16/32/48/128 px — DIRENDER dari brand/logo.svg, jangan diedit manual
-brand/logo.svg               Sumber logo Petik
+icons/                       Ikon 16/32/48/128 px — DIRENDER dari brand/*.svg, jangan diedit manual
+brand/logo.svg               Sumber logo Paperlift (lembar kertas terangkat + panah unduh)
+brand/logo-small.svg         Versi sederhana untuk ikon 16/32 px
 store/                       Screenshot 1280×800 + promo 440×280 (dirender) dan store/src/ (sumbernya)
 tools/render-assets.mjs      Render ikon + aset store via Chrome headless (Node; bukan bagian extension)
-tools/package.py             Buat dist/petik-<versi>.zip untuk Web Store (hanya file runtime)
+tools/package.py             Buat dist/paperlift-<versi>.zip untuk Web Store (hanya file runtime)
 tests/server.py              Server uji lokal (Python stdlib) + tests/pages/*.html
 README.md                    Instalasi, cara pakai, batasan, troubleshooting, merek
 TESTING.md                   Checklist uji manual (Pass/Fail diisi pengguna)
@@ -96,7 +97,7 @@ Server uji: `python tests/server.py` → http://127.0.0.1:8000/ (`localhost:8000
 - [x] Fase 4 — README + checklist uji manual
 - [x] Fase 5 — slide gambar → PDF (pdf-lib)
 - [ ] Opsional — ekspor PPTX (belum diminta)
-- [x] Fase 6 (permintaan 2026-11-10) — merek Petik, popup dipoles, persiapan Chrome Web Store (v1.0.0)
+- [x] Fase 6 (permintaan 2026-11-10) — merek Paperlift, popup dipoles, persiapan Chrome Web Store (v1.0.0)
 Pengguna menyetujui Fase 2–5 ("sudah bagus") dan meminta push + rilis ke Web Store.
 
 ## Keputusan
@@ -133,10 +134,13 @@ Pengguna menyetujui Fase 2–5 ("sudah bagus") dan meminta push + rilis ke Web S
 - **Konversi gambar**: JPEG/PNG langsung di-embed; GIF/BMP/SVG → PNG; WebP/AVIF/lainnya →
   JPEG kualitas 0.92 (latar putih). Ukuran halaman = ukuran gambar (1 px = 1 pt).
 - **Popup memicu `rescan`** setiap dibuka agar status canvas/lazy-load terbaru.
-- **2026-11-10: merek Petik** (nama, logo, warna) dibuat atas permintaan pengguna. Nama
-  manifest "Petik — Unduh PDF & Slide", short_name "Petik", versi 1.0.0, homepage = repo GitHub.
+- **2026-11-10: merek Paperlift** (nama, logo, warna). Nama sebelumnya "Petik" ditolak pengguna:
+  ingin nama bahasa Inggris yang keren; dipilih "Paperlift" dari 4 opsi. Teks UI tetap bahasa
+  Indonesia. Nama manifest "Paperlift — Save PDFs & Slides", short_name "Paperlift", versi 1.0.0.
 - **Screenshot store memakai domain fiktif** (`kelas-contoh.id`), bukan merek situs nyata,
   untuk menghindari masalah merek dagang saat review.
 - **Paket store** hanya berisi background, content, offscreen, popup, lib, vendor, icons, manifest.
 - **Ikon 128 px** memakai padding ±10 px (area gambar ±100 px) mengikuti panduan Web Store;
-  16/32 px tanpa padding agar tajam di toolbar.
+  16/32 px tanpa padding dan memakai logo-small.svg agar tajam di toolbar.
+- **Logo Paperlift**: lembar depan miring 7° (terangkat) dengan lipatan terakota dan panah
+  unduh, lembar belakang transparan 28% sebagai "halaman" yang ditinggalkan.

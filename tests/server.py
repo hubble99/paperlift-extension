@@ -1,4 +1,4 @@
-"""Server uji lokal Petik (hanya pustaka standar Python).
+"""Server uji lokal Paperlift (hanya pustaka standar Python).
 
 Jalankan dari root proyek:
     python tests/server.py
@@ -27,7 +27,7 @@ PORT = 8000
 def make_pdf(label):
     """PDF satu halaman yang valid (offset xref dihitung)."""
     text = label.replace("\\", "").replace("(", "").replace(")", "")[:80]
-    stream = f"BT /F1 24 Tf 72 720 Td (Petik - {text}) Tj ET".encode("latin-1", "replace")
+    stream = f"BT /F1 24 Tf 72 720 Td (Paperlift - {text}) Tj ET".encode("latin-1", "replace")
     objs = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
         b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",

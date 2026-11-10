@@ -105,7 +105,7 @@ const ops = {
   'pdf-begin': async ({ jobId, title }) => {
     const doc = await PDFLib.PDFDocument.create();
     if (title) doc.setTitle(title);
-    doc.setCreator('Petik');
+    doc.setCreator('Paperlift');
     pdfJobs.set(jobId, doc);
     return { ok: true };
   },

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Petik — Unduh PDF & Slide",
-  "short_name": "Petik",
+  "name": "Paperlift — Save PDFs & Slides",
+  "short_name": "Paperlift",
   "version": "1.0.0",
   "description": "Temukan dan simpan PDF yang sudah dimuat di halaman, juga gabungkan slide berbentuk gambar menjadi satu PDF.",
   "homepage_url": "https://github.com/hubble99/pptx-downloader-extension",
@@ -32,7 +32,7 @@
     }
   ],
   "action": {
-    "default_title": "Petik",
+    "default_title": "Paperlift",
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",

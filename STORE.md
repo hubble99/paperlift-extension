@@ -8,7 +8,7 @@
 ```
 python tools/package.py
 ```
-Hasil: `dist/petik-<versi>.zip`. Hanya berisi file extension (tanpa tests, tools, dokumen).
+Hasil: `dist/paperlift-<versi>.zip`. Hanya berisi file extension (tanpa tests, tools, dokumen).
 Setiap update: naikkan `version` di `manifest.json`, buat paket lagi, unggah di item yang sama.
 
 Aset grafis bisa dibuat ulang setelah mengubah logo atau popup:
@@ -22,7 +22,7 @@ Devconsole → **New item** → pilih zip → isi tab-tab berikut.
 ### Tab "Store listing"
 | Kolom | Isi |
 |---|---|
-| Nama | (otomatis dari manifest) **Petik — Unduh PDF & Slide** |
+| Nama | (otomatis dari manifest) **Paperlift — Save PDFs & Slides** |
 | Ringkasan | (otomatis dari manifest) Temukan dan simpan PDF yang sudah dimuat di halaman, juga gabungkan slide berbentuk gambar menjadi satu PDF. |
 | Kategori | Productivity → Tools |
 | Bahasa | Indonesia |
@@ -34,13 +34,13 @@ Devconsole → **New item** → pilih zip → isi tab-tab berikut.
 **Deskripsi** (salin):
 
 ```
-Petik membantu Anda menyimpan PDF yang sudah tampil di halaman, tetapi tombol unduhnya disembunyikan. Misalnya materi kursus yang ditampilkan lewat viewer pdf.js.
+Paperlift membantu Anda menyimpan PDF yang sudah tampil di halaman, tetapi tombol unduhnya disembunyikan. Misalnya materi kursus yang ditampilkan lewat viewer pdf.js.
 
 FITUR
 • Deteksi otomatis: iframe viewer pdf.js (?file=), <embed>/<object>, link .pdf, dan file PDF yang dimuat halaman.
 • Satu klik untuk mengunduh, atau "Download semua".
 • Cara cadangan saat server menolak unduhan langsung (403): file diambil lewat halaman asalnya, dengan sesi login Anda.
-• Slide berbentuk gambar? Petik mengenali deretan slide, bisa memuat semuanya (lazy-load), lalu menggabungkannya menjadi satu PDF dalam resolusi terbesar yang tersedia.
+• Slide berbentuk gambar? Paperlift mengenali deretan slide, bisa memuat semuanya (lazy-load), lalu menggabungkannya menjadi satu PDF dalam resolusi terbesar yang tersedia.
 • Nama file rapi dan aman untuk Windows, macOS, dan Linux.
 • Tampilan minimal, mendukung mode gelap.
 
@@ -48,7 +48,7 @@ PRIVASI
 Tanpa akun, tanpa iklan, tanpa pelacakan. Semua proses berjalan lokal di browser; tidak ada data yang dikirim ke server pengembang.
 
 BATASAN
-• Hanya untuk materi yang memang bisa Anda akses. Petik tidak membongkar DRM atau enkripsi.
+• Hanya untuk materi yang memang bisa Anda akses. Paperlift tidak membongkar DRM atau enkripsi.
 • Tidak mendukung viewer yang tidak pernah mengirim file PDF utuh (mis. Scribd, FlipHTML5).
 • PDF hasil gabungan slide berisi gambar; teksnya tidak bisa disalin.
 
@@ -71,7 +71,7 @@ Open source: https://github.com/hubble99/pptx-downloader-extension
 
 **Remote code**: *No, I am not using remote code.* (pdf-lib disertakan di dalam paket.)
 
-**Data usage**: jangan centang kategori data apa pun (Petik tidak mengumpulkan data).
+**Data usage**: jangan centang kategori data apa pun (Paperlift tidak mengumpulkan data).
 Centang ketiga pernyataan sertifikasi (tidak menjual data, tidak dipakai untuk tujuan lain,
 tidak untuk menilai kelayakan kredit).
 

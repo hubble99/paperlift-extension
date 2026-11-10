@@ -1,12 +1,12 @@
-# Kebijakan Privasi Petik
+# Kebijakan Privasi Paperlift
 
 *Berlaku sejak 10 November 2026*
 
-Petik adalah extension Chrome untuk menemukan dan menyimpan PDF yang sudah dimuat di
+Paperlift adalah extension Chrome untuk menemukan dan menyimpan PDF yang sudah dimuat di
 halaman, serta menggabungkan slide berbentuk gambar menjadi PDF.
 
 ## Ringkasnya
-**Petik tidak mengumpulkan, menyimpan di server, menjual, atau membagikan data Anda.**
+**Paperlift tidak mengumpulkan, menyimpan di server, menjual, atau membagikan data Anda.**
 Semua proses berjalan di dalam browser Anda sendiri.
 
 ## Data yang diproses
@@ -14,7 +14,7 @@ Semua proses berjalan di dalam browser Anda sendiri.
   daftar di popup. Disimpan sementara di memori sesi browser (`chrome.storage.session`) dan
   otomatis terhapus saat tab ditutup, pindah halaman, atau browser ditutup.
 - **Header respons jaringan** (jenis file dan nama file) dibaca untuk mengenali file PDF.
-  Petik hanya mengamati; tidak mengubah, memblokir, atau mengirim ulang request.
+  Paperlift hanya mengamati; tidak mengubah, memblokir, atau mengirim ulang request.
 - **Isi file PDF/gambar** yang Anda pilih untuk diunduh atau digabung. Isi ini diambil dari
   server situs tersebut (dengan cookie browser Anda, seperti saat halaman memuatnya), lalu
   langsung disimpan ke folder Downloads Anda.
@@ -40,9 +40,9 @@ https://github.com/hubble99/pptx-downloader-extension/issues
 
 ---
 
-# Petik Privacy Policy (English)
+# Paperlift Privacy Policy (English)
 
-Petik does **not** collect, transmit, sell, or share any personal data. All processing
+Paperlift does **not** collect, transmit, sell, or share any personal data. All processing
 happens locally in your browser. URLs of PDFs and slide images on pages you visit are kept
 temporarily in session memory to show them in the popup and are cleared when the tab closes
 or navigates. Response headers are observed (never modified) to recognize PDF files. File

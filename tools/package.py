@@ -3,7 +3,7 @@
 Hanya file yang dibutuhkan extension yang dimasukkan (tanpa tests/, tools/, store/, dokumen).
 Jalankan dari root proyek:
     python tools/package.py
-Hasil: dist/petik-<versi>.zip
+Hasil: dist/paperlift-<versi>.zip
 """
 import json
 import os
@@ -48,12 +48,12 @@ def main():
 
     out_dir = os.path.join(ROOT, "dist")
     os.makedirs(out_dir, exist_ok=True)
-    out = os.path.join(out_dir, f"petik-{version}.zip")
+    out = os.path.join(out_dir, f"paperlift-{version}.zip")
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for rel in sorted(files):
             z.write(os.path.join(ROOT, rel), rel)
     size = os.path.getsize(out) / 1024
-    print(f"dibuat dist/petik-{version}.zip  ({len(files)} file, {size:.0f} KB)")
+    print(f"dibuat dist/paperlift-{version}.zip  ({len(files)} file, {size:.0f} KB)")
 
 
 if __name__ == "__main__":

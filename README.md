@@ -1,21 +1,21 @@
-<p align="center"><img src="brand/logo.svg" width="88" alt="Logo Petik"></p>
+<p align="center"><img src="brand/logo.svg" width="88" alt="Logo Paperlift"></p>
 
-<h1 align="center">Petik</h1>
+<h1 align="center">Paperlift</h1>
 <p align="center">Simpan PDF &amp; slide dari halaman web dengan satu klik.</p>
 
-Petik adalah Chrome extension (Manifest V3) untuk mengunduh PDF yang **sudah dimuat** di
+Paperlift adalah Chrome extension (Manifest V3) untuk mengunduh PDF yang **sudah dimuat** di
 halaman tetapi tombol download-nya disembunyikan. Contohnya course player yang menampilkan
-PDF lewat iframe pdf.js. Petik juga bisa menggabungkan slide yang ditampilkan sebagai
+PDF lewat iframe pdf.js. Paperlift juga bisa menggabungkan slide yang ditampilkan sebagai
 gambar menjadi satu PDF.
 
-![Tampilan Petik](store/screenshot-1.png)
+![Tampilan Paperlift](store/screenshot-1.png)
 
 > Hanya untuk materi yang memang bisa Anda akses, untuk pemakaian pribadi.
-> Petik tidak membongkar DRM atau enkripsi.
+> Paperlift tidak membongkar DRM atau enkripsi.
 
 ## Instalasi
 
-**Dari Chrome Web Store:** cari "Petik", lalu klik *Add to Chrome*. Tautan akan
+**Dari Chrome Web Store:** cari "Paperlift", lalu klik *Add to Chrome*. Tautan akan
 ditambahkan setelah lolos review.
 
 **Manual (developer mode):**
@@ -119,7 +119,7 @@ Nama file diambil dari header `Content-Disposition`, lalu dari path URL (jika be
      viewer meminta URL baru, lalu langsung klik Download.
    - Server memeriksa hal lain selain cookie/Referer (token di header khusus). Situs seperti
      ini tidak didukung.
-3. Buka `chrome://extensions` → Petik → **service worker** (tautan "Inspect views")
+3. Buka `chrome://extensions` → Paperlift → **service worker** (tautan "Inspect views")
    → tab Console. Pesan `download langsung gagal, mencoba fallback` menunjukkan alasan cara 1 gagal.
 
 ### PDF tidak muncul di daftar
@@ -147,7 +147,7 @@ Lihat [PRIVACY.md](PRIVACY.md).
 | Perintah | Fungsi |
 |---|---|
 | `python tests/server.py` | Server uji lokal di http://127.0.0.1:8000/ (lihat [TESTING.md](TESTING.md)) |
-| `python tools/package.py` | Membuat `dist/petik-<versi>.zip` untuk Chrome Web Store |
+| `python tools/package.py` | Membuat `dist/paperlift-<versi>.zip` untuk Chrome Web Store |
 | `node tools/render-assets.mjs` | Merender ikon, screenshot, dan promo tile dari `brand/logo.svg` (butuh Chrome; Node 20 tambah `--experimental-websocket`) |
 
 Panduan upload ke Web Store, termasuk teks listing dan alasan tiap permission, ada di [STORE.md](STORE.md).
@@ -156,8 +156,8 @@ Panduan upload ke Web Store, termasuk teks listing dan alasan tiap permission, a
 
 | | |
 |---|---|
-| Nama | **Petik**, dari "memetik": mengambil PDF dan slide dari halaman |
-| Logo | `brand/logo.svg`: kertas dengan sudut terpetik dan panah unduh |
+| Nama | **Paperlift**: "mengangkat" lembar kertas (PDF dan slide) dari halaman web |
+| Logo | `brand/logo.svg`: lembar kertas yang terangkat dari halaman, dengan sudut terlipat dan panah unduh (`brand/logo-small.svg` untuk ikon kecil) |
 | Warna utama | Hijau-teal tua `#24524F` |
 | Aksen | Terakota `#E08A5F` (dipakai hemat) |
 | Kertas | `#F7F4EE` |

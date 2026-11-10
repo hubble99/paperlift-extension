@@ -1,4 +1,4 @@
-// Popup Petik: menampilkan state tab aktif dan mengirim perintah ke service worker.
+// Popup Paperlift: menampilkan state tab aktif dan mengirim perintah ke service worker.
 // Pekerjaan berat berjalan di service worker, jadi menutup popup tidak menghentikannya.
 // Tombol langsung bereaksi saat diklik (spinner) tanpa menunggu balasan service worker.
 
@@ -111,7 +111,7 @@ function renderPdfs(st, scannable) {
     $('empty-sub').textContent = 'Halaman bawaan Chrome dan Web Store tidak bisa diakses extension.';
   } else {
     $('empty-title').textContent = 'Tidak ada PDF terdeteksi';
-    $('empty-sub').textContent = 'Buka PDF di halaman ini dan Petik akan menampilkannya di sini. Baru memasang Petik? Muat ulang halaman dulu.';
+    $('empty-sub').textContent = 'Buka PDF di halaman ini dan Paperlift akan menampilkannya di sini. Baru memasang Paperlift? Muat ulang halaman dulu.';
   }
 }
 

@@ -1,5 +1,5 @@
-// Merender aset merek Petik lewat Chrome headless (bukan bagian extension).
-//   - icons/icon{16,32,48,128}.png  dari brand/logo.svg (latar transparan)
+// Merender aset merek Paperlift lewat Chrome headless (bukan bagian extension).
+//   - icons/icon{16,32,48,128}.png  dari brand/logo.svg dan brand/logo-small.svg (latar transparan)
 //   - store/screenshot-{1,2,3}.png  1280×800 untuk Chrome Web Store
 //   - store/promo-440x280.png       small promo tile
 //
@@ -46,7 +46,7 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
 // ---- Chrome + DevTools Protocol ----
-const profile = await mkdtemp(join(tmpdir(), 'petik-render-'));
+const profile = await mkdtemp(join(tmpdir(), 'paperlift-render-'));
 const port = 9400 + Math.floor(Math.random() * 400);
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
   '--no-first-run', '--no-default-browser-check', '--hide-scrollbars', '--force-color-profile=srgb', 'about:blank'], { stdio: 'ignore' });
@@ -92,14 +92,16 @@ async function shoot(url, width, height, out, { transparent = false, dark = fals
 }
 
 // Ikon: logo di tengah dengan padding per ukuran (128 px: area gambar ±96 px sesuai panduan Web Store).
-const svg = await readFile(join(ROOT, 'brand/logo.svg'), 'utf8');
-const iconPage = (size, pad) => 'data:text/html;base64,' + Buffer.from(
+// 16/32 px memakai brand/logo-small.svg (lebih sederhana agar tetap terbaca).
+const svgFull = await readFile(join(ROOT, 'brand/logo.svg'), 'utf8');
+const svgSmall = await readFile(join(ROOT, 'brand/logo-small.svg'), 'utf8');
+const iconPage = (svg, size, pad) => 'data:text/html;base64,' + Buffer.from(
   `<html><body data-ready="1" style="margin:0;width:${size}px;height:${size}px">` +
   `<div style="padding:${pad}px;width:${size}px;height:${size}px;box-sizing:border-box">` +
   svg.replace('width="128" height="128"', 'width="100%" height="100%"') + '</div></body></html>').toString('base64');
 
-for (const [size, pad] of [[16, 0], [32, 0], [48, 1], [128, 10]]) {
-  await shoot(iconPage(size, pad), size, size, `icons/icon${size}.png`, { transparent: true });
+for (const [size, pad, svg] of [[16, 0, svgSmall], [32, 0, svgSmall], [48, 1, svgFull], [128, 10, svgFull]]) {
+  await shoot(iconPage(svg, size, pad), size, size, `icons/icon${size}.png`, { transparent: true });
 }
 
 await shoot(`${BASE}/store/src/shot.html?mock=pdf`, 1280, 800, 'store/screenshot-1.png');

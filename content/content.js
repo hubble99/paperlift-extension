@@ -1,4 +1,4 @@
-// Content script Petik. Berjalan di SETIAP frame (all_frames: true).
+// Content script Paperlift. Berjalan di SETIAP frame (all_frames: true).
 // Tugas:
 //  1. Memindai DOM untuk PDF (iframe pdf.js ?file=, <embed>/<object>, link .pdf).
 //  2. Mendeteksi "mode slide" (kumpulan gambar/canvas besar berurutan).
@@ -8,8 +8,8 @@
 // File ini tidak bisa memakai `import`, jadi harus berdiri sendiri.
 
 (() => {
-  if (globalThis.__petikLoaded) return;
-  globalThis.__petikLoaded = true;
+  if (globalThis.__paperliftLoaded) return;
+  globalThis.__paperliftLoaded = true;
 
   // ---------------- Utilitas ----------------
 
@@ -353,7 +353,7 @@
     try {
       payload = { pdfs: scanPdfs(), deck: deckSummary(detectDeck()) };
     } catch (e) {
-      console.warn('[Petik] gagal memindai', e);
+      console.warn('[Paperlift] gagal memindai', e);
       return;
     }
     const s = JSON.stringify(payload);

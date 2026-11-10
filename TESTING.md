@@ -1,13 +1,13 @@
-# Checklist Uji Manual — Petik
+# Checklist Uji Manual — Paperlift
 
 Kolom **Pass/Fail** dan **Catatan** diisi oleh penguji (pengguna), bukan oleh Claude.
 
 ## Persiapan
-1. `chrome://extensions` → reload Petik (↻).
+1. `chrome://extensions` → reload Paperlift (↻).
 2. Jalankan server uji: `python tests/server.py` → buka http://127.0.0.1:8000/
    (`localhost:8000` dipakai sebagai "domain lain").
 3. Setelah reload extension, **muat ulang** tab yang akan diuji.
-4. Untuk melihat log: `chrome://extensions` → Petik → *service worker* → Console.
+4. Untuk melihat log: `chrome://extensions` → Paperlift → *service worker* → Console.
 
 Versi diuji: ______  Chrome: ______  Tanggal: ______
 
@@ -42,10 +42,10 @@ Versi diuji: ______  Chrome: ______  Tanggal: ______
 
 | No | Skenario | Langkah | Hasil yang diharapkan | Pass/Fail | Catatan |
 |---|---|---|---|---|---|
-| C1 | Tampilan popup | Lihat popup di beberapa halaman | Minimal dan tenang, tanpa kotak mencolok, shadow tipis, teks tidak meluber. Header berisi logo + "Petik" | | |
+| C1 | Tampilan popup | Lihat popup di beberapa halaman | Minimal dan tenang, tanpa kotak mencolok, shadow tipis, teks tidak meluber. Header berisi logo + "Paperlift" | | |
 | C1a | Rasa klik | Klik Download, Download semua, Gabung jadi PDF, Muat semua slide | Tombol langsung "tertekan" (mengecil sedikit) dan spinner muncul seketika. Setelah selesai, tombol Download sempat menampilkan centang "Tersimpan" dan baris berkedip hijau lembut | | |
 | C1b | Mode gelap | Ubah tema sistem/Chrome ke gelap, buka popup | Warna gelap yang nyaman, teks terbaca, tombol utama tetap jelas | | |
-| C1c | Ikon & badge | Lihat ikon di toolbar dan halaman `chrome://extensions` | Logo Petik tajam di semua ukuran; warna badge hijau-teal | | |
+| C1c | Ikon & badge | Lihat ikon di toolbar dan halaman `chrome://extensions` | Logo Paperlift tajam di semua ukuran; warna badge hijau-teal | | |
 | C2 | Tidak ada error | `chrome://extensions` → tombol **Errors** di kartu extension | Tidak ada error merah setelah semua uji | | |
 | C3 | Halaman khusus | Buka `chrome://extensions`, klik ikon | Popup: "Halaman ini tidak bisa dipindai" | | |
-| C4 | Paket Web Store | `python tools/package.py`, ekstrak `dist/petik-1.0.0.zip` ke folder baru, Load unpacked folder itu | Extension termuat tanpa error dan berfungsi sama (uji A1 cepat) | | |
+| C4 | Paket Web Store | `python tools/package.py`, ekstrak `dist/paperlift-1.0.0.zip` ke folder baru, Load unpacked folder itu | Extension termuat tanpa error dan berfungsi sama (uji A1 cepat) | | |
