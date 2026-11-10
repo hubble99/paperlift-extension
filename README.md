@@ -1,14 +1,24 @@
-# PDF Grabber
+<p align="center"><img src="brand/logo.svg" width="88" alt="Logo Petik"></p>
 
-Chrome extension (Manifest V3) untuk mengunduh PDF yang **sudah dimuat** di halaman tetapi
-tombol download-nya disembunyikan. Contohnya course player yang menampilkan PDF lewat iframe pdf.js.
-Extension ini juga bisa menggabungkan slide yang ditampilkan sebagai gambar menjadi satu PDF.
+<h1 align="center">Petik</h1>
+<p align="center">Simpan PDF &amp; slide dari halaman web dengan satu klik.</p>
+
+Petik adalah Chrome extension (Manifest V3) untuk mengunduh PDF yang **sudah dimuat** di
+halaman tetapi tombol download-nya disembunyikan. Contohnya course player yang menampilkan
+PDF lewat iframe pdf.js. Petik juga bisa menggabungkan slide yang ditampilkan sebagai
+gambar menjadi satu PDF.
+
+![Tampilan Petik](store/screenshot-1.png)
 
 > Hanya untuk materi yang memang bisa Anda akses, untuk pemakaian pribadi.
-> Extension ini tidak membongkar DRM atau enkripsi.
+> Petik tidak membongkar DRM atau enkripsi.
 
 ## Instalasi
 
+**Dari Chrome Web Store:** cari "Petik", lalu klik *Add to Chrome*. Tautan akan
+ditambahkan setelah lolos review.
+
+**Manual (developer mode):**
 1. Unduh atau clone repo ini.
 2. Buka `chrome://extensions`.
 3. Aktifkan **Developer mode** (pojok kanan atas).
@@ -109,7 +119,7 @@ Nama file diambil dari header `Content-Disposition`, lalu dari path URL (jika be
      viewer meminta URL baru, lalu langsung klik Download.
    - Server memeriksa hal lain selain cookie/Referer (token di header khusus). Situs seperti
      ini tidak didukung.
-3. Buka `chrome://extensions` → PDF Grabber → **service worker** (tautan "Inspect views")
+3. Buka `chrome://extensions` → Petik → **service worker** (tautan "Inspect views")
    → tab Console. Pesan `download langsung gagal, mencoba fallback` menunjukkan alasan cara 1 gagal.
 
 ### PDF tidak muncul di daftar
@@ -127,13 +137,30 @@ buka halaman viewer-nya langsung di tab baru (klik kanan iframe → buka frame),
 - Gambar yang dipisahkan paragraf teks dianggap galeri/artikel, bukan slide.
 - Klik **Muat semua slide**, lalu buka popup lagi.
 
-## Pengujian
+## Privasi
 
-Server uji lokal tersedia (hanya butuh Python):
-```
-python tests/server.py
-```
-Buka http://127.0.0.1:8000/, lalu ikuti [TESTING.md](TESTING.md).
+Tanpa akun, tanpa iklan, tanpa pelacakan. Semua proses berjalan lokal di browser.
+Lihat [PRIVACY.md](PRIVACY.md).
+
+## Pengembangan
+
+| Perintah | Fungsi |
+|---|---|
+| `python tests/server.py` | Server uji lokal di http://127.0.0.1:8000/ (lihat [TESTING.md](TESTING.md)) |
+| `python tools/package.py` | Membuat `dist/petik-<versi>.zip` untuk Chrome Web Store |
+| `node tools/render-assets.mjs` | Merender ikon, screenshot, dan promo tile dari `brand/logo.svg` (butuh Chrome; Node 20 tambah `--experimental-websocket`) |
+
+Panduan upload ke Web Store, termasuk teks listing dan alasan tiap permission, ada di [STORE.md](STORE.md).
+
+## Merek
+
+| | |
+|---|---|
+| Nama | **Petik**, dari "memetik": mengambil PDF dan slide dari halaman |
+| Logo | `brand/logo.svg`: kertas dengan sudut terpetik dan panah unduh |
+| Warna utama | Hijau-teal tua `#24524F` |
+| Aksen | Terakota `#E08A5F` (dipakai hemat) |
+| Kertas | `#F7F4EE` |
 
 ## Lisensi pihak ketiga
 - [pdf-lib](https://pdf-lib.js.org/) 1.17.1 — MIT, lihat `vendor/pdf-lib.LICENSE.md`.

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>Petik</title>
+  <!-- Latar: hijau-teal tua -->
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="#24524F"/>
+  <!-- Kertas dengan sudut kanan atas "terpetik" -->
+  <path d="M42 26h34l22 22v50a8 8 0 0 1-8 8H42a8 8 0 0 1-8-8V34a8 8 0 0 1 8-8z" fill="#F7F4EE"/>
+  <!-- Lipatan sudut: aksen terakota -->
+  <path d="M76 26v14a8 8 0 0 0 8 8h14z" fill="#E08A5F"/>
+  <!-- Panah unduh -->
+  <path d="M66 50v30" stroke="#24524F" stroke-width="9" stroke-linecap="round"/>
+  <path d="M52 68l14 14 14-14" fill="none" stroke="#24524F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,29 +1,38 @@
 {
   "manifest_version": 3,
-  "name": "PDF Grabber",
-  "version": "0.5.0",
-  "description": "Mendeteksi dan mengunduh PDF yang sudah dimuat di halaman, serta menggabungkan slide berbentuk gambar menjadi PDF.",
+  "name": "Petik — Unduh PDF & Slide",
+  "short_name": "Petik",
+  "version": "1.0.0",
+  "description": "Temukan dan simpan PDF yang sudah dimuat di halaman, juga gabungkan slide berbentuk gambar menjadi satu PDF.",
+  "homepage_url": "https://github.com/hubble99/pptx-downloader-extension",
   "minimum_chrome_version": "116",
-
-  "permissions": ["storage", "webRequest", "downloads", "offscreen"],
-  "host_permissions": ["<all_urls>"],
-
+  "permissions": [
+    "storage",
+    "webRequest",
+    "downloads",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "background/service-worker.js",
     "type": "module"
   },
-
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content/content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content/content.js"
+      ],
       "all_frames": true,
       "run_at": "document_idle"
     }
   ],
-
   "action": {
-    "default_title": "PDF Grabber",
+    "default_title": "Petik",
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
@@ -32,7 +41,6 @@
       "128": "icons/icon128.png"
     }
   },
-
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",

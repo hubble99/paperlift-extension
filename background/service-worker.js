@@ -1,4 +1,4 @@
-// Service worker (latar belakang) PDF Grabber.
+// Service worker (latar belakang) Petik.
 // - Menyimpan hasil deteksi per tab di chrome.storage.session.
 // - Mencatat respons application/pdf lewat webRequest (hanya mengamati).
 // - Mengatur badge jumlah PDF.
@@ -11,7 +11,7 @@ import {
   filenameFromContentDisposition, sanitizeFilename, resolvePdfName,
 } from '../lib/shared.js';
 
-const BADGE_COLOR = '#5B6B7A';
+const BADGE_COLOR = '#24524F'; // warna merek Petik
 
 // ---------------- State per tab ----------------
 
@@ -27,7 +27,7 @@ function withTab(tabId, fn) {
     await chrome.storage.session.set({ [key]: st });
     await updateBadge(tabId, st);
     return st;
-  }).catch((e) => console.warn('[PDF Grabber]', e));
+  }).catch((e) => console.warn('[Petik]', e));
   queues.set(tabId, next);
   return next;
 }
@@ -193,7 +193,7 @@ async function downloadPdf(tabId, url) {
 }
 
 async function fallbackDownload(tabId, url, filename, why) {
-  console.info('[PDF Grabber] download langsung gagal, mencoba fallback:', why);
+  console.info('[Petik] download langsung gagal, mencoba fallback:', why);
   await setStatus(tabId, url, 'working', 'Mencoba lewat halaman…');
   const entry = await findEntry(tabId, url);
   const frames = [...entry.frames];
@@ -417,7 +417,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   };
   const h = handlers[msg.type];
   if (!h) return false;
-  h().catch((e) => console.warn('[PDF Grabber]', e));
+  h().catch((e) => console.warn('[Petik]', e));
   sendResponse({ ok: true }); // popup tidak menunggu; progres dibaca dari storage
   return false;
 });

@@ -1,4 +1,4 @@
-// Content script PDF Grabber. Berjalan di SETIAP frame (all_frames: true).
+// Content script Petik. Berjalan di SETIAP frame (all_frames: true).
 // Tugas:
 //  1. Memindai DOM untuk PDF (iframe pdf.js ?file=, <embed>/<object>, link .pdf).
 //  2. Mendeteksi "mode slide" (kumpulan gambar/canvas besar berurutan).
@@ -8,8 +8,8 @@
 // File ini tidak bisa memakai `import`, jadi harus berdiri sendiri.
 
 (() => {
-  if (globalThis.__pdfGrabberLoaded) return;
-  globalThis.__pdfGrabberLoaded = true;
+  if (globalThis.__petikLoaded) return;
+  globalThis.__petikLoaded = true;
 
   // ---------------- Utilitas ----------------
 
@@ -353,7 +353,7 @@
     try {
       payload = { pdfs: scanPdfs(), deck: deckSummary(detectDeck()) };
     } catch (e) {
-      console.warn('[PDF Grabber] gagal memindai', e);
+      console.warn('[Petik] gagal memindai', e);
       return;
     }
     const s = JSON.stringify(payload);
