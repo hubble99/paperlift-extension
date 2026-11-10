@@ -33,6 +33,7 @@ tools/package.py             Buat dist/paperlift-<versi>.zip untuk Web Store (ha
 tests/server.py              Server uji lokal (Python stdlib) + tests/pages/*.html
 README.md                    (English) fitur, instalasi step by step, cara pakai, terjemahan label UI, troubleshooting
 PRIVACY.md                   (English) kebijakan privasi
+LICENSE                      MIT (c) 2026 hubble99; ikut dimasukkan ke zip rilis
 docs/TESTING.md              (English) checklist uji manual (Pass/Fail diisi pengguna)
 docs/CHROME-WEB-STORE.md     (English) catatan jika kelak dipublikasikan ke Web Store
 ```
@@ -146,5 +147,6 @@ Pengguna menyetujui Fase 2–5 ("sudah bagus") dan meminta push + rilis ke Web S
   bayar USD 5). Pengguna mengunduh zip dari GitHub Releases (`dist/paperlift-<versi>.zip`)
   lalu Load unpacked. Dokumen repo (README, PRIVACY, docs/) berbahasa Inggris; teks UI popup
   tetap bahasa Indonesia (README memuat tabel terjemahan label). CLAUDE.md tetap bahasa Indonesia.
+- **2026-11-10: lisensi MIT** (atas permintaan pengguna), pemegang hak cipta "hubble99".
 - **Logo Paperlift**: lembar depan miring 7° (terangkat) dengan lipatan terakota dan panah
   unduh, lembar belakang transparan 28% sebagai "halaman" yang ditinggalkan.

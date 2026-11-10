@@ -12,7 +12,7 @@ import zipfile
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 INCLUDE_DIRS = ["background", "content", "offscreen", "popup", "lib", "vendor", "icons"]
-INCLUDE_FILES = ["manifest.json"]
+INCLUDE_FILES = ["manifest.json", "LICENSE"]
 SKIP_EXT = {".md"}  # lisensi pdf-lib tetap disertakan, lihat di bawah
 KEEP = {"vendor/pdf-lib.LICENSE.md"}
 

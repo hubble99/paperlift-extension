@@ -12,6 +12,7 @@
   <img alt="Manifest V3" src="https://img.shields.io/badge/manifest-v3-24524F">
   <img alt="Chrome 116+" src="https://img.shields.io/badge/chrome-116%2B-24524F">
   <img alt="No tracking" src="https://img.shields.io/badge/tracking-none-E08A5F">
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-24524F"></a>
 </p>
 
 <p align="center"><img src="store/screenshot-1.png" width="760" alt="Paperlift popup showing detected PDFs"></p>
@@ -41,6 +42,7 @@ shown as a series of images into a single PDF.
 - [Troubleshooting](#troubleshooting)
 - [Development](#development)
 - [Credits](#credits)
+- [License](#license)
 
 ## Features
 
@@ -380,3 +382,8 @@ then create a GitHub release and attach the ZIP from `dist/`.
 - [pdf-lib](https://pdf-lib.js.org/) 1.17.1 by Andrew Dillon, MIT License
   (see [vendor/pdf-lib.LICENSE.md](vendor/pdf-lib.LICENSE.md)).
 - Logo and icons: original artwork made for Paperlift (`brand/`).
+
+## License
+
+Paperlift is released under the [MIT License](LICENSE). You're free to use, modify and
+share it, as long as the copyright notice is kept. It comes with no warranty.
