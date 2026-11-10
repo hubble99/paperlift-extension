@@ -1,0 +1,30 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Slide lazy-load</title>
+<style>body{font:15px/1.6 system-ui;max-width:1000px;margin:24px auto;padding:0 16px;color:#2b2f33}
+.deck img,.deck canvas{display:block;width:800px;max-width:100%;height:auto;margin:0 0 12px;border:1px solid #ddd}
+a{color:#4a6a8a} code{background:#f2f2f0;padding:1px 4px}</style></head><body>
+<p><a href="index.html">&larr; daftar halaman uji</a></p>
+<h1>Slide lazy-load</h1>
+
+<p>30 slide. Gambar baru dimuat saat terlihat (<code>data-src</code>), dan slide baru ditambahkan saat scroll mendekati bawah (6 per batch).</p>
+<div class="deck" id="deck"></div>
+<p id="end">…</p>
+<script>
+const PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+const deck = document.getElementById('deck');
+let next = 1;
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) { const i = e.target; i.src = i.dataset.src; io.unobserve(i); }
+}), {rootMargin: '100px'});
+function batch() {
+  for (let k = 0; k < 6 && next <= 30; k++, next++) {
+    const d = document.createElement('div'); d.className = 'slide';
+    const img = document.createElement('img');
+    img.src = PLACEHOLDER; img.dataset.src = '/slide/' + next + '.png?w=960&h=540';
+    img.width = 960; img.height = 540; img.alt = 'Slide ' + next;
+    d.appendChild(img); deck.appendChild(d); io.observe(img);
+  }
+}
+batch();
+new IntersectionObserver(es => { if (es[0].isIntersecting) batch(); }).observe(document.getElementById('end'));
+</script>
+</body></html>

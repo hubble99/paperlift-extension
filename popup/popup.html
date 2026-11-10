@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>PDF Grabber</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>PDF Grabber</h1>
+    <span id="host" class="muted"></span>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <h2>PDF <span id="pdf-count" class="muted"></span></h2>
+      <button id="dl-all" class="link" hidden>Download semua</button>
+    </div>
+    <ul id="pdf-list" class="list"></ul>
+    <p id="pdf-empty" class="muted" hidden>Tidak ada PDF terdeteksi</p>
+  </section>
+
+  <section id="slide-section" hidden>
+    <div class="section-head">
+      <h2>Slide terdeteksi: <span id="slide-count">0</span> halaman</h2>
+    </div>
+    <div id="thumbs" class="thumbs"></div>
+    <p id="slide-note" class="muted small" hidden></p>
+    <div class="actions">
+      <button id="merge" class="btn">Gabung jadi PDF</button>
+      <button id="load-all" class="link">Muat semua slide</button>
+    </div>
+    <p id="slide-progress" class="small" hidden></p>
+  </section>
+
+  <p id="hint" class="muted small hint" hidden></p>
+
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

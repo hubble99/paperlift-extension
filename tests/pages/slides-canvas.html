@@ -1,0 +1,25 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Slide canvas</title>
+<style>body{font:15px/1.6 system-ui;max-width:1000px;margin:24px auto;padding:0 16px;color:#2b2f33}
+.deck img,.deck canvas{display:block;width:800px;max-width:100%;height:auto;margin:0 0 12px;border:1px solid #ddd}
+a{color:#4a6a8a} code{background:#f2f2f0;padding:1px 4px}</style></head><body>
+<p><a href="index.html">&larr; daftar halaman uji</a></p>
+<h1>Slide canvas</h1>
+
+<p>8 slide canvas. Slide 7–8 menggambar gambar dari domain lain tanpa CORS → canvas "tainted", harus ditandai "tidak bisa diambil".</p>
+<div class="deck" id="deck"></div>
+<script>
+const deck = document.getElementById('deck');
+for (let n = 1; n <= 8; n++) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 576;
+  const x = c.getContext('2d');
+  x.fillStyle = 'hsl(' + n * 40 + ',35%,70%)'; x.fillRect(0, 0, 1024, 576);
+  x.fillStyle = '#fff'; x.font = 'bold 120px system-ui'; x.fillText('Canvas ' + n, 80, 320);
+  deck.appendChild(c);
+  if (n >= 7) {
+    const img = new Image();
+    img.onload = () => x.drawImage(img, 600, 380, 320, 180);
+    img.src = 'http://localhost:8000/slide/' + n + '.png?w=320&h=180';
+  }
+}
+</script>
+</body></html>
