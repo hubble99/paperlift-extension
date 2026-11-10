@@ -1,17 +1,17 @@
-// Content script Paperlift. Berjalan di SETIAP frame (all_frames: true).
-// Tugas:
-//  1. Memindai DOM untuk PDF (iframe pdf.js ?file=, <embed>/<object>, link .pdf).
-//  2. Mendeteksi "mode slide" (kumpulan gambar/canvas besar berurutan).
-//  3. Melaporkan hasil ke service worker (frame-report).
-//  4. Atas permintaan service worker: fetch file dari frame ini (supaya cookie/Referer
-//     sama seperti halaman), mengambil gambar slide, dan memuat semua slide via scroll.
-// File ini tidak bisa memakai `import`, jadi harus berdiri sendiri.
+// Paperlift content script. Runs in EVERY frame (all_frames: true).
+// Jobs:
+//  1. Scan the DOM for PDFs (pdf.js iframes with ?file=, <embed>/<object>, .pdf links).
+//  2. Detect slide decks (a run of large images/canvases).
+//  3. Report results to the service worker (frame-report).
+//  4. On request from the service worker: fetch a file from this frame (so cookies and
+//     Referer match the page), read slide images, and load all slides by scrolling.
+// This file can't use `import`, so it has to be self-contained.
 
 (() => {
   if (globalThis.__paperliftLoaded) return;
   globalThis.__paperliftLoaded = true;
 
-  // ---------------- Utilitas ----------------
+  // ---------------- Utilities ----------------
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const isHttp = (u) => /^https?:/i.test(u || '');
@@ -28,20 +28,20 @@
 
   function safeSend(msg) {
     try {
-      // Setelah extension di-reload, content script lama kehilangan koneksi → abaikan.
+      // After the extension is reloaded, old content scripts lose their connection → ignore.
       if (!chrome.runtime?.id) return;
       chrome.runtime.sendMessage(msg).catch(() => {});
-    } catch { /* konteks extension sudah tidak valid */ }
+    } catch { /* extension context is no longer valid */ }
   }
 
-  /** URL viewer pdf.js (…/viewer.html?file=<url>) → URL PDF aslinya (sudah di-decode). */
+  /** pdf.js viewer URL (…/viewer.html?file=<url>) → the decoded URL of the real PDF. */
   function pdfFromViewerUrl(src) {
     let url;
     try { url = new URL(src, document.baseURI); } catch { return null; }
-    let file = url.searchParams.get('file'); // searchParams sudah men-decode satu kali
+    let file = url.searchParams.get('file'); // searchParams already decodes once
     if (!file) return null;
     if (/^https?%3A/i.test(file)) {
-      try { file = decodeURIComponent(file); } catch { /* biarkan */ }
+      try { file = decodeURIComponent(file); } catch { /* keep as is */ }
     }
     const abs = toAbs(file, url.href);
     if (!abs || !isHttp(abs)) return null;
@@ -52,7 +52,7 @@
   const selfViewerPdf = pdfFromViewerUrl(location.href);
   const isPdfJsFrame = () => !!selfViewerPdf || !!document.querySelector('#viewerContainer .pdfViewer');
 
-  // ---------------- 1. Deteksi PDF ----------------
+  // ---------------- 1. PDF detection ----------------
 
   function scanPdfs() {
     const found = new Map();
@@ -90,14 +90,14 @@
     return [...found.values()];
   }
 
-  // ---------------- 2. Deteksi slide ----------------
+  // ---------------- 2. Slide detection ----------------
 
   const SKIP_RE = /(logo|avatar|icon|emoji|sprite|badge|gravatar|profile-pic|userpic)/i;
   const LAZY_ATTRS = ['data-src', 'data-original', 'data-lazy-src', 'data-lazy', 'data-url',
     'data-hi-res-src', 'data-full', 'data-full-src', 'data-zoom-src'];
   const STATE_CLASS_RE = /active|current|selected|visible|show|hidden|loaded|loading|lazy|fade|in-view/i;
 
-  /** Parser srcset sederhana (sesuai spesifikasi HTML): kembalikan [{url, score}]. */
+  /** Small srcset parser (follows the HTML spec): returns [{url, score}]. */
   function parseSrcset(s, base) {
     const out = [];
     if (!s) return out;
@@ -130,7 +130,7 @@
 
   const isDataPlaceholder = (u) => /^data:/i.test(u || '') && u.length < 2000;
 
-  /** Resolusi terbesar: srcset terbesar > data-src/data-original > src. */
+  /** Largest resolution: biggest srcset entry > data-src/data-original > src. */
   function bestImageUrl(img) {
     const cands = [];
     for (const attr of ['srcset', 'data-srcset']) cands.push(...parseSrcset(img.getAttribute(attr)));
@@ -153,7 +153,7 @@
     return img.complete && img.naturalWidth > 1 && !isDataPlaceholder(img.currentSrc || img.src);
   }
 
-  /** Info ukuran sebuah kandidat. ratio = null kalau belum diketahui (gambar lazy belum dimuat). */
+  /** Size info for a candidate. ratio = null when unknown (lazy image not loaded yet). */
   function measure(el) {
     const rect = el.getBoundingClientRect();
     const attrW = Number(el.getAttribute('width')) || 0;
@@ -174,9 +174,9 @@
     const hint = [el.id, el.className && String(el.className), el.getAttribute('alt'),
       el.getAttribute('src')].join(' ');
     if (SKIP_RE.test(hint)) return false;
-    // Ditampilkan kecil (thumbnail/ikon) → bukan slide utama.
+    // Shown small (thumbnail/icon) → not a main slide.
     if (m.rect.width > 0 && m.rect.width < 300) return false;
-    // Tersembunyi (mis. slide carousel lain): pakai ukuran asli/atribut.
+    // Hidden (e.g. another carousel slide): use the natural size or attributes.
     if (m.rect.width === 0) {
       const w = m.w || Number(el.getAttribute('width')) || 0;
       if (w && w < 300) return false;
@@ -189,7 +189,7 @@
     return true;
   }
 
-  /** Tanda struktur: elemen dalam satu daftar slide punya pola induk yang sama. */
+  /** Structural signature: elements in one slide list share the same parent pattern. */
   function signature(el) {
     const parts = [el.tagName];
     let p = el.parentElement;
@@ -200,7 +200,7 @@
     return parts.join('<');
   }
 
-  /** Ada teks berarti (>40 karakter) di antara dua elemen? Berarti bukan slide berurutan. */
+  /** Meaningful text (>40 chars) between two elements? Then they aren't consecutive slides. */
   function textBetween(a, b) {
     try {
       const r = document.createRange();
@@ -217,7 +217,7 @@
     return s.length ? s[Math.floor(s.length / 2)] : null;
   }
 
-  /** Cari nomor halaman: atribut data-*, lalu teks alt/aria/title, lalu nama file. */
+  /** Find a page number: data-* attributes, then alt/aria/title text, then the file name. */
   const PAGE_ATTRS = ['data-page', 'data-page-number', 'data-page-index', 'data-slide',
     'data-slide-number', 'data-slide-index', 'data-index'];
   function numberBySource(el, url, source) {
@@ -232,6 +232,7 @@
     }
     if (source === 'text') {
       const t = [el.getAttribute('alt'), el.getAttribute('aria-label'), el.getAttribute('title')].join(' ');
+      // Also matches Indonesian labels ("halaman", "hal.") found on some course sites.
       const m = /(?:slide|page|halaman|hal\.?|p\.)\s*#?\s*(\d+)/i.exec(t);
       return m ? Number(m[1]) : null;
     }
@@ -245,7 +246,7 @@
     return null;
   }
 
-  /** Urutkan pakai nomor halaman jika konsisten (semua ada, unik, kira-kira berurutan). */
+  /** Sort by page number when it's consistent (all present, unique, roughly sequential). */
   function orderMembers(members) {
     for (const source of ['attr', 'text', 'file']) {
       const nums = members.map((m) => numberBySource(m.el, m.url, source));
@@ -253,16 +254,16 @@
       const uniq = new Set(nums);
       if (uniq.size !== nums.length) continue;
       const min = Math.min(...nums), max = Math.max(...nums);
-      if (max - min >= nums.length * 2) continue; // terlalu acak → kemungkinan hash, bukan nomor
+      if (max - min >= nums.length * 2) continue; // too scattered → probably a hash, not a page number
       const sorted = members.map((m, i) => ({ m, n: nums[i] })).sort((a, b) => a.n - b.n).map((x) => x.m);
       return { members: sorted, ordering: source };
     }
     return { members, ordering: 'dom' };
   }
 
-  /** Deteksi deck slide terbaik di frame ini. Kembalikan null jika tidak ada. */
+  /** Detect the best slide deck in this frame. Returns null if there is none. */
   function detectDeck() {
-    if (isPdfJsFrame()) return null; // halaman pdf.js dirender ke canvas; itu PDF, bukan slide
+    if (isPdfJsFrame()) return null; // pdf.js renders pages to canvas; that's a PDF, not slides
     const groups = new Map();
     for (const el of document.querySelectorAll('img, canvas')) {
       const m = measure(el);
@@ -275,7 +276,7 @@
 
     let best = null;
     for (const list of groups.values()) {
-      // Pecah menjadi "run" yang tidak dipisahkan teks.
+      // Split into runs that aren't separated by text.
       const runs = [];
       let cur = [];
       for (const item of list) {
@@ -301,8 +302,8 @@
     return orderMembers(best.members);
   }
 
-  // Canvas "tainted" = pernah digambari gambar lintas domain tanpa izin CORS, sehingga
-  // isinya tidak boleh dibaca. Status ini permanen, jadi hanya hasil tainted yang di-cache.
+  // A "tainted" canvas has had a cross-origin image drawn on it without CORS permission,
+  // so its pixels can't be read. That state is permanent, so only tainted results are cached.
   const taintedCanvases = new WeakSet();
   function canvasThumb(canvas) {
     if (taintedCanvases.has(canvas)) return { tainted: true };
@@ -343,7 +344,7 @@
     };
   }
 
-  // ---------------- 3. Laporan ke service worker ----------------
+  // ---------------- 3. Reporting to the service worker ----------------
 
   const EMPTY = JSON.stringify({ pdfs: [], deck: null });
   let lastSent = EMPTY;
@@ -353,17 +354,17 @@
     try {
       payload = { pdfs: scanPdfs(), deck: deckSummary(detectDeck()) };
     } catch (e) {
-      console.warn('[Paperlift] gagal memindai', e);
+      console.warn('[Paperlift] scan failed', e);
       return;
     }
     const s = JSON.stringify(payload);
-    // Paksa kirim (setelah state tab di-reset) hanya kalau ada isinya.
+    // A forced report (after the tab state was reset) is only sent if it has content.
     if (force ? s === EMPTY : s === lastSent) return;
     lastSent = s;
     safeSend({ type: 'frame-report', url: location.href, ...payload });
   }
 
-  // Debounce: tunggu DOM tenang 800 ms, tapi paling lama 3 detik.
+  // Debounce: wait until the DOM is quiet for 800 ms, but at most 3 seconds.
   let timer = null, firstPending = 0;
   function schedule() {
     const now = Date.now();
@@ -379,11 +380,11 @@
     attributes: true,
     attributeFilter: ['src', 'srcset', 'data-src', 'data-srcset', 'href', 'data', 'type'],
   });
-  // Gambar selesai dimuat → ukuran aslinya baru diketahui.
+  // An image finished loading → its natural size is now known.
   document.addEventListener('load', (e) => { if (e.target?.tagName === 'IMG') schedule(); }, true);
   report();
 
-  // ---------------- 4. Fetch dari frame asal ----------------
+  // ---------------- 4. Fetch from the original frame ----------------
 
   const fetched = new Map(); // id → Blob
   const CHUNK = 4 * 1024 * 1024;
@@ -408,7 +409,7 @@
       if (!res.ok) return { ok: false, status: res.status, reason: `HTTP ${res.status}` };
       const blob = await res.blob();
       if (!(await looksLikePdf(blob))) {
-        return { ok: false, reason: 'Isi respons bukan PDF (mungkin halaman login).' };
+        return { ok: false, reason: 'The response is not a PDF (maybe a login page).' };
       }
       const id = Math.random().toString(36).slice(2);
       fetched.set(id, blob);
@@ -417,21 +418,21 @@
         contentDisposition: res.headers.get('content-disposition'),
       };
     } catch (e) {
-      // Biasanya CORS: server tidak mengizinkan domain frame ini membaca file.
+      // Usually CORS: the server doesn't let this frame's origin read the file.
       return { ok: false, reason: String(e && e.message || e) };
     }
   }
 
   async function fetchChunk(id, offset) {
     const blob = fetched.get(id);
-    if (!blob) return { ok: false, reason: 'Data sudah dibuang.' };
+    if (!blob) return { ok: false, reason: 'The data was already released.' };
     const b64 = await blobToBase64(blob.slice(offset, offset + CHUNK));
     return { ok: true, b64, next: Math.min(offset + CHUNK, blob.size) };
   }
 
-  // ---------------- 5. Ambil gambar slide ----------------
+  // ---------------- 5. Read slide images ----------------
 
-  let mergeDeck = null; // snapshot deck saat "Gabung jadi PDF" dimulai
+  let mergeDeck = null; // deck snapshot taken when "Merge into PDF" starts
 
   function collectDeck() {
     const deck = detectDeck();
@@ -445,13 +446,13 @@
 
   async function slideBytes(index) {
     const m = mergeDeck?.[index];
-    if (!m) return { ok: false, reason: 'Halaman tidak ditemukan.' };
+    if (!m) return { ok: false, reason: 'Page not found.' };
     if (m.el.tagName === 'CANVAS') {
       try {
         const d = m.el.toDataURL('image/png');
         return { ok: true, b64: d.slice(d.indexOf(',') + 1), mime: 'image/png' };
       } catch {
-        return { ok: false, tainted: true, reason: 'tidak bisa diambil (canvas tainted)' };
+        return { ok: false, tainted: true, reason: 'unreadable (tainted canvas)' };
       }
     }
     try {
@@ -464,7 +465,7 @@
     }
   }
 
-  // ---------------- 6. Muat semua slide (scroll otomatis) ----------------
+  // ---------------- 6. Load all slides (auto-scroll) ----------------
 
   let loadingAll = false;
 
@@ -519,7 +520,7 @@
         const after = detectDeck();
         const list = after ? after.members : [];
         const sig = `${list.length}:${list.filter((m) => !m.pending).length}`;
-        if (sig === lastSig) break; // jumlah tidak bertambah lagi
+        if (sig === lastSig) break; // the count stopped growing
         lastSig = sig;
       }
     } finally {
@@ -532,7 +533,7 @@
     }
   }
 
-  // ---------------- Pesan dari service worker ----------------
+  // ---------------- Messages from the service worker ----------------
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     switch (msg?.type) {

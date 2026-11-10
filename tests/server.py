@@ -1,17 +1,17 @@
-"""Server uji lokal Paperlift (hanya pustaka standar Python).
+"""Local test server for Paperlift (Python standard library only).
 
-Jalankan dari root proyek:
+Run from the project root:
     python tests/server.py
-lalu buka http://127.0.0.1:8000/
+then open http://127.0.0.1:8000/
 
-Rute penting:
-  /pages/*.html                 halaman uji
-  /files/<nama>.pdf             PDF contoh (nama bebas)
-  /cd/<nama>.pdf                PDF dengan Content-Disposition bernama aneh
-  /protected/<nama>.pdf         403 kecuali ada Referer dari situs uji (dibuka langsung = 403)
-  /viewer/web/viewer.html?file= tiruan viewer pdf.js (memuat file via fetch)
-  /slide/<n>.png?w=960&h=540    gambar slide bernomor (dibuat otomatis)
-Host kedua http://localhost:8000 dipakai sebagai "domain lain" (uji lintas domain).
+Routes:
+  /pages/*.html                 test pages
+  /files/<name>.pdf             sample PDF (any name)
+  /cd/<name>.pdf                PDF with an oddly named Content-Disposition
+  /protected/<name>.pdf         403 unless the Referer is the test site (opened directly = 403)
+  /viewer/web/viewer.html?file= mock pdf.js viewer (loads the file with fetch)
+  /slide/<n>.png?w=960&h=540    numbered slide image (generated)
+The second host http://localhost:8000 acts as "another domain" for cross-origin tests.
 """
 import colorsys
 import os
@@ -25,7 +25,7 @@ PORT = 8000
 
 
 def make_pdf(label):
-    """PDF satu halaman yang valid (offset xref dihitung)."""
+    """A valid one-page PDF (xref offsets are computed)."""
     text = label.replace("\\", "").replace("(", "").replace(")", "")[:80]
     stream = f"BT /F1 24 Tf 72 720 Td (Paperlift - {text}) Tj ET".encode("latin-1", "replace")
     objs = [
@@ -50,7 +50,7 @@ def make_pdf(label):
 
 
 def make_slide_png(n, w, h):
-    """Slide polos berwarna; nomor slide ditandai dengan n kotak putih di kiri atas."""
+    """A plain colored slide; slide number n is shown as n white boxes in the top-left corner."""
     r, g, b = (int(c * 255) for c in colorsys.hsv_to_rgb((n * 0.13) % 1, 0.35, 0.75))
     bg = bytes([r, g, b])
     white = b"\xff\xff\xff"
@@ -68,7 +68,7 @@ def make_slide_png(n, w, h):
                 for i in range(count):
                     x0 = pad + i * (box + gap)
                     line[x0 * 3:(x0 + box) * 3] = white * box
-        # garis bawah sebagai penanda kemajuan
+        # bottom bar as a progress marker
         if y > h - pad and y < h - pad // 2:
             line[pad * 3:(pad + (w - 2 * pad) * min(n, 60) // 60) * 3] = white * ((w - 2 * pad) * min(n, 60) // 60)
         rows.append(b"\x00" + bytes(line))
@@ -82,15 +82,15 @@ def make_slide_png(n, w, h):
             + chunk(b"IDAT", zlib.compress(b"".join(rows), 6)) + chunk(b"IEND", b""))
 
 
-VIEWER_HTML = """<!doctype html><meta charset="utf-8"><title>viewer (tiruan pdf.js)</title>
+VIEWER_HTML = """<!doctype html><meta charset="utf-8"><title>viewer (mock pdf.js)</title>
 <style>body{font:14px system-ui;margin:16px;color:#333}</style>
-<p>Tiruan viewer pdf.js. File: <code id="f"></code></p><p id="s">Memuat…</p>
+<p>Mock pdf.js viewer. File: <code id="f"></code></p><p id="s">Loading…</p>
 <script>
 const file = new URLSearchParams(location.search).get('file');
 document.getElementById('f').textContent = file;
 fetch(new URL(file, location.href), {credentials: 'include'})
-  .then(r => r.ok ? r.arrayBuffer().then(b => 'Termuat: ' + b.byteLength + ' byte') : 'HTTP ' + r.status)
-  .catch(e => 'Gagal: ' + e)
+  .then(r => r.ok ? r.arrayBuffer().then(b => 'Loaded: ' + b.byteLength + ' bytes') : 'HTTP ' + r.status)
+  .catch(e => 'Failed: ' + e)
   .then(t => document.getElementById('s').textContent = t);
 </script>"""
 
@@ -108,7 +108,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
         origin = self.headers.get("Origin")
-        if origin:  # CORS untuk viewer di domain lain (seperti cdn.thinkific.com)
+        if origin:  # CORS for a viewer on another domain (like cdn.thinkific.com)
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Access-Control-Allow-Credentials", "true")
             self.send_header("Access-Control-Expose-Headers", "Content-Disposition")
@@ -127,19 +127,19 @@ class Handler(SimpleHTTPRequestHandler):
         if p.startswith("/files/") and p.lower().endswith(".pdf"):
             return self.send_bytes(make_pdf(name), "application/pdf")
         if p.startswith("/cd/"):
-            weird = "Laporan Q1 – \"Final\": revisi*2 <ok>?.pdf"
+            weird = "Report Q1 – \"Final\": revision*2 <ok>?.pdf"
             from urllib.parse import quote
-            # inline (bukan attachment) supaya iframe tidak langsung memicu download
-            cd = f"inline; filename=\"laporan.pdf\"; filename*=UTF-8''{quote(weird)}"
+            # inline (not attachment) so the iframe doesn't trigger a download right away
+            cd = f"inline; filename=\"report.pdf\"; filename*=UTF-8''{quote(weird)}"
             return self.send_bytes(make_pdf("Content-Disposition"), "application/pdf",
                                    {"Content-Disposition": cd})
         if p.startswith("/protected/"):
-            # Seperti CDN yang memeriksa hotlink: wajib ada Referer dari situs uji.
-            # (Iframe lintas domain hanya mengirim origin, mis. "http://localhost:8000/".)
+            # Like a CDN with hotlink protection: the Referer must be the test site.
+            # (Cross-origin iframes only send the origin, e.g. "http://localhost:8000/".)
             ref = self.headers.get("Referer", "")
             if ref.startswith(("http://localhost:8000/", "http://127.0.0.1:8000/")):
-                return self.send_bytes(make_pdf("terlindungi " + name), "application/pdf")
-            return self.send_bytes(b"403 Forbidden: Referer tidak valid", "text/plain", status=403)
+                return self.send_bytes(make_pdf("protected " + name), "application/pdf")
+            return self.send_bytes(b"403 Forbidden: invalid Referer", "text/plain", status=403)
         if p == "/viewer/web/viewer.html":
             return self.send_bytes(VIEWER_HTML.encode(), "text/html; charset=utf-8")
         if p.startswith("/slide/") and p.endswith(".png"):
@@ -161,5 +161,5 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print(f"Server uji: http://127.0.0.1:{PORT}/   (domain kedua: http://localhost:{PORT}/)")
+    print(f"Test server: http://127.0.0.1:{PORT}/   (second domain: http://localhost:{PORT}/)")
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

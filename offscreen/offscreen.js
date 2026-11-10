@@ -1,7 +1,7 @@
-// Offscreen document: halaman tersembunyi milik extension.
-// Dipakai karena service worker tidak bisa membuat blob URL (URL.createObjectURL).
-// Tugas: menampung data file → blob URL, fetch dari konteks extension,
-// konversi gambar (WebP dll.) dan menyusun PDF dengan pdf-lib (global `PDFLib`).
+// Offscreen document: a hidden page owned by the extension.
+// Needed because the service worker can't create blob URLs (URL.createObjectURL).
+// Jobs: collect file data → blob URL, fetch from the extension context,
+// convert images (WebP etc.) and build PDFs with pdf-lib (global `PDFLib`).
 
 const blobParts = new Map(); // key → Uint8Array[]
 const pdfJobs = new Map();   // jobId → PDFDocument
@@ -23,14 +23,14 @@ function sniffImage(b) {
   return 'other';
 }
 
-/** Ubah gambar format apa pun yang bisa dibaca Chrome menjadi JPEG/PNG lewat OffscreenCanvas. */
+/** Convert any image format Chrome can decode into JPEG/PNG via OffscreenCanvas. */
 async function convertImage(bytes, mime, kind) {
   const blob = new Blob([bytes], { type: mime || '' });
   let source;
   try {
     source = await createImageBitmap(blob);
   } catch {
-    // createImageBitmap tidak mendukung SVG → pakai elemen <img>.
+    // createImageBitmap doesn't support SVG → use an <img> element.
     const url = URL.createObjectURL(blob);
     try {
       source = new Image();
@@ -42,13 +42,13 @@ async function convertImage(bytes, mime, kind) {
   }
   const w = source.width || source.naturalWidth;
   const h = source.height || source.naturalHeight;
-  if (!w || !h) throw new Error('Ukuran gambar tidak terbaca.');
+  if (!w || !h) throw new Error('Could not read the image size.');
   const canvas = new OffscreenCanvas(w, h);
   const ctx = canvas.getContext('2d');
-  // GIF/PNG biasanya grafis tajam → PNG. Lainnya (WebP, AVIF, ...) → JPEG kualitas tinggi.
+  // GIF/PNG are usually sharp graphics → PNG. Everything else (WebP, AVIF, ...) → high-quality JPEG.
   const asPng = kind === 'gif' || kind === 'png' || /gif|bmp|svg/i.test(mime || '');
   if (!asPng) {
-    ctx.fillStyle = '#ffffff'; // JPEG tidak punya transparansi
+    ctx.fillStyle = '#ffffff'; // JPEG has no transparency
     ctx.fillRect(0, 0, w, h);
   }
   ctx.drawImage(source, 0, 0, w, h);
@@ -63,37 +63,37 @@ async function embed(doc, bytes, mime) {
     if (kind === 'jpg') return await doc.embedJpg(bytes);
     if (kind === 'png') return await doc.embedPng(bytes);
   } catch {
-    // JPEG/PNG yang tidak didukung pdf-lib → konversi dulu.
+    // JPEG/PNG variants pdf-lib can't embed → convert first.
   }
   const conv = await convertImage(bytes, mime, kind);
   return conv.kind === 'jpg' ? doc.embedJpg(conv.bytes) : doc.embedPng(conv.bytes);
 }
 
 const ops = {
-  // ---- Menampung file sedikit demi sedikit, lalu jadikan blob URL ----
+  // ---- Collect a file piece by piece, then turn it into a blob URL ----
   'blob-begin': ({ key }) => { blobParts.set(key, []); return { ok: true }; },
   'blob-append': async ({ key, b64 }) => {
     const parts = blobParts.get(key);
-    if (!parts) return { ok: false, error: 'Sesi blob tidak ditemukan.' };
+    if (!parts) return { ok: false, error: 'Blob session not found.' };
     parts.push(await b64ToBytes(b64));
     return { ok: true };
   },
   'blob-end': ({ key, type }) => {
     const parts = blobParts.get(key);
     blobParts.delete(key);
-    if (!parts) return { ok: false, error: 'Sesi blob tidak ditemukan.' };
+    if (!parts) return { ok: false, error: 'Blob session not found.' };
     return { ok: true, blobUrl: URL.createObjectURL(new Blob(parts, { type })) };
   },
   'blob-abort': ({ key }) => { blobParts.delete(key); return { ok: true }; },
   'revoke': ({ url }) => { if (url) URL.revokeObjectURL(url); return { ok: true }; },
 
-  // ---- Tahap 3 download: fetch dari konteks extension ----
+  // ---- Download step 3: fetch from the extension context ----
   'fetch-pdf': async ({ url }) => {
     try {
       const res = await fetch(url, { credentials: 'include' });
       if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
       const bytes = new Uint8Array(await res.arrayBuffer());
-      if (!looksLikePdf(bytes)) return { ok: false, error: 'Isi respons bukan PDF (mungkin halaman login).' };
+      if (!looksLikePdf(bytes)) return { ok: false, error: 'The response is not a PDF (maybe a login page).' };
       const blobUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
       return { ok: true, blobUrl, contentDisposition: res.headers.get('content-disposition') };
     } catch (e) {
@@ -101,7 +101,7 @@ const ops = {
     }
   },
 
-  // ---- Slide → PDF ----
+  // ---- Slides → PDF ----
   'pdf-begin': async ({ jobId, title }) => {
     const doc = await PDFLib.PDFDocument.create();
     if (title) doc.setTitle(title);
@@ -111,7 +111,7 @@ const ops = {
   },
   'pdf-add': async ({ jobId, b64, url, mime }) => {
     const doc = pdfJobs.get(jobId);
-    if (!doc) return { ok: false, error: 'Job tidak ditemukan.' };
+    if (!doc) return { ok: false, error: 'Job not found.' };
     try {
       let bytes;
       if (b64) {
@@ -124,7 +124,7 @@ const ops = {
       }
       const img = await embed(doc, bytes, mime);
       const { width, height } = img.scale(1);
-      // Ukuran halaman = ukuran gambar (1 piksel = 1 point), satu gambar per halaman.
+      // Page size = image size (1 pixel = 1 point), one image per page.
       const page = doc.addPage([width, height]);
       page.drawImage(img, { x: 0, y: 0, width, height });
       return { ok: true };
@@ -135,7 +135,7 @@ const ops = {
   'pdf-end': async ({ jobId }) => {
     const doc = pdfJobs.get(jobId);
     pdfJobs.delete(jobId);
-    if (!doc) return { ok: false, error: 'Job tidak ditemukan.' };
+    if (!doc) return { ok: false, error: 'Job not found.' };
     const bytes = await doc.save();
     return { ok: true, blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' })) };
   },

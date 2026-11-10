@@ -1,4 +1,4 @@
-/* Paperlift — popup. Tenang, rapi, terasa saat diklik. */
+/* Paperlift popup: calm, tidy, and responsive to every click. */
 
 :root {
   --bg: #fbfaf7;
@@ -6,10 +6,10 @@
   --text: #23272a;
   --muted: #737a80;
   --line: #e9e6df;
-  --ink: #24524f;          /* warna merek */
+  --ink: #24524f;          /* brand color */
   --ink-hover: #1d4542;
   --ink-soft: #e6efed;
-  --accent: #e08a5f;       /* terakota, dipakai hemat */
+  --accent: #e08a5f;       /* terracotta, used sparingly */
   --ok: #3f7a55;
   --ok-soft: #e7f1ea;
   --err: #a5503f;
@@ -112,7 +112,7 @@ main { padding: 12px 16px 4px; }
   box-shadow: var(--shadow);
 }
 
-/* ---------- Tombol ---------- */
+/* ---------- Buttons ---------- */
 
 .btn {
   position: relative;
@@ -162,7 +162,7 @@ main { padding: 12px 16px 4px; }
 .btn[data-state="done"] .ico-dl { display: none; }
 .btn[data-state="error"] { color: var(--err); }
 
-/* Spinner kecil di dalam tombol */
+/* Small spinner inside buttons */
 .spinner {
   display: none;
   width: 12px;
@@ -175,7 +175,7 @@ main { padding: 12px 16px 4px; }
 .btn[data-state="busy"] .spinner { display: inline-block; }
 .btn[data-state="busy"] .ico-dl { display: none; }
 
-/* ---------- Daftar PDF ---------- */
+/* ---------- PDF list ---------- */
 
 .list {
   list-style: none;
@@ -222,7 +222,7 @@ main { padding: 12px 16px 4px; }
 .item-meta .status.done { color: var(--ok); }
 .item-meta .status.error { color: var(--err); white-space: normal; flex: 1; }
 
-/* ---------- Kosong ---------- */
+/* ---------- Empty state ---------- */
 
 .empty {
   display: flex;
@@ -236,7 +236,7 @@ main { padding: 12px 16px 4px; }
 .empty-title { font-weight: 550; }
 .empty-sub { font-size: 12px; color: var(--muted); max-width: 260px; }
 
-/* ---------- Slide ---------- */
+/* ---------- Slides ---------- */
 
 .thumbs {
   display: flex;
@@ -313,7 +313,7 @@ main { padding: 12px 16px 4px; }
 .foot a { color: var(--ink); text-decoration: none; }
 .foot a:hover { text-decoration: underline; }
 
-/* ---------- Animasi ---------- */
+/* ---------- Animation ---------- */
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pop { 0% { transform: scale(0.4); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }

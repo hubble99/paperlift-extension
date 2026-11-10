@@ -162,47 +162,27 @@ That's it. Open a page with a PDF and click the Paperlift icon.
    If the player only loads the file when you open the material, open it first.
 2. The number on the Paperlift icon shows how many PDFs were found.
 3. Click the icon. The popup lists every PDF with its file name and source website.
-4. Click **Download** next to a file, or **Download semua** (*Download all*) to save every file.
+4. Click **Download** next to a file, or **Download all** to save every file.
 5. The file is saved to your normal Downloads folder. The button briefly shows
-   **Tersimpan** (*Saved*) ✓.
+   **Saved** ✓.
 
-If the first attempt is refused, you'll see *Mencoba lewat halaman…* (*Trying via the
-page…*) while Paperlift switches to the fallback method automatically. You don't need to do
-anything.
+If the first attempt is refused, the status changes to *Trying via the page…* while
+Paperlift switches to the fallback method automatically. You don't need to do anything.
+If every method fails, the status shows *Failed:* with the reason, and the button changes
+to **Try again**.
 
 ### Merging image slides into one PDF
 
 When a page shows a presentation as a series of images, the popup displays
-**Slide terdeteksi: N halaman** (*Slides detected: N pages*) with a few thumbnails.
+**Slides detected: N pages** with a few thumbnails.
 
-1. If the page loads slides as you scroll, click **Muat semua slide** (*Load all slides*)
-   first. Wait until it finishes (30 seconds at most), then reopen the popup to see the new
-   count.
-2. Click **Gabung jadi PDF** (*Merge into PDF*).
-3. Watch the progress (`Memproses 12/40`). You can close the popup, because the work
+1. If the page loads slides as you scroll, click **Load all slides** first. Wait until it
+   finishes (30 seconds at most), then reopen the popup to see the new count.
+2. Click **Merge into PDF**.
+3. Watch the progress (`Processing 12/40`). You can close the popup, because the work
    continues in the background.
-4. The PDF is saved to your Downloads folder, named after the page title.
-
-### Interface language
-
-The popup is currently in **Indonesian**. Here's what each label means:
-
-| Popup label | Meaning |
-|---|---|
-| Download | Download this file |
-| Download semua | Download all |
-| Gabung jadi PDF | Merge into PDF |
-| Muat semua slide | Load all slides |
-| Slide terdeteksi: *N* halaman | Slides detected: *N* pages |
-| Mengunduh… | Downloading… |
-| Mencoba lewat halaman… | Trying via the page (fallback)… |
-| Tersimpan | Saved |
-| Gagal: … | Failed: … (followed by the reason) |
-| Coba lagi | Try again |
-| Memproses 12/40 | Processing 12 of 40 |
-| Tidak ada PDF terdeteksi | No PDFs detected |
-| Halaman ini tidak bisa dipindai | This page can't be scanned (for example `chrome://` pages) |
-| Hanya untuk materi yang bisa Anda akses. | Only for material you have access to. |
+4. The PDF is saved to your Downloads folder, named after the page title. Pages that
+   couldn't be read are listed by number.
 
 ## Updating and uninstalling
 
@@ -300,7 +280,7 @@ inner folder.
 </details>
 
 <details>
-<summary><b>The popup says "Tidak ada PDF terdeteksi" (No PDFs detected)</b></summary>
+<summary><b>The popup says "No PDFs detected"</b></summary>
 
 - Reload the page. This is required after installing or reloading the extension.
 - Open the PDF in the page first. Some players only load the file when you open the lesson.
@@ -309,7 +289,7 @@ inner folder.
 </details>
 
 <details>
-<summary><b>"Gagal: server menolak akses (403)" (Failed: access denied)</b></summary>
+<summary><b>"Failed: access denied by the server (403)"</b></summary>
 
 1. Make sure you're still logged in and the PDF displays normally. Reload the page and try again.
 2. Paperlift already retries through the page automatically. If it still fails:
@@ -322,7 +302,7 @@ inner folder.
 </details>
 
 <details>
-<summary><b>"Gagal: diblokir server (CORS/jaringan)" (Failed: blocked by the server)</b></summary>
+<summary><b>"Failed: blocked by the server (CORS/network)"</b></summary>
 
 Neither the page nor the extension was allowed to read the file. Try opening the viewer on
 its own: right-click inside the PDF viewer, open the frame in a new tab, then use Paperlift
@@ -335,7 +315,7 @@ there.
 - Slides must be shown reasonably large (at least 300 px wide), and there must be at least 3
   of them. Try making the window bigger.
 - Images separated by paragraphs of text are treated as an article or gallery, not a deck.
-- Click **Muat semua slide** (*Load all slides*), then reopen the popup.
+- Click **Load all slides**, then reopen the popup.
 </details>
 
 <details>
@@ -375,7 +355,8 @@ docs/                        Manual test checklist, Chrome Web Store notes
 | `node tools/render-assets.mjs` | Renders the icons, screenshots and promo image from `brand/*.svg` with headless Chrome. On Node 20, add `--experimental-websocket`. |
 
 **Making a release:** bump `version` in `manifest.json`, run `python tools/package.py`,
-then create a GitHub release and attach the ZIP from `dist/`.
+add the changes to [CHANGELOG.md](CHANGELOG.md), then create a GitHub release and attach
+the ZIP from `dist/`.
 
 ## Credits
 

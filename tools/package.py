@@ -1,9 +1,9 @@
-"""Membuat paket .zip untuk diunggah ke Chrome Web Store.
+"""Build the release .zip (attached to GitHub releases; also valid for the Chrome Web Store).
 
-Hanya file yang dibutuhkan extension yang dimasukkan (tanpa tests/, tools/, store/, dokumen).
-Jalankan dari root proyek:
+Only runtime files are included (no tests/, tools/, store/ or docs).
+Run from the project root:
     python tools/package.py
-Hasil: dist/paperlift-<versi>.zip
+Output: dist/paperlift-<version>.zip
 """
 import json
 import os
@@ -13,12 +13,12 @@ import zipfile
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 INCLUDE_DIRS = ["background", "content", "offscreen", "popup", "lib", "vendor", "icons"]
 INCLUDE_FILES = ["manifest.json", "LICENSE"]
-SKIP_EXT = {".md"}  # lisensi pdf-lib tetap disertakan, lihat di bawah
+SKIP_EXT = {".md"}  # the pdf-lib license is still included, see KEEP
 KEEP = {"vendor/pdf-lib.LICENSE.md"}
 
 
 def referenced_files(manifest):
-    """Semua file yang disebut manifest harus ada di paket."""
+    """Every file the manifest refers to must be in the package."""
     refs = {manifest["background"]["service_worker"], manifest["action"]["default_popup"]}
     refs |= set(manifest["icons"].values()) | set(manifest["action"]["default_icon"].values())
     for cs in manifest.get("content_scripts", []):
@@ -42,9 +42,9 @@ def main():
 
     missing = sorted(r for r in referenced_files(manifest) if r not in files)
     if missing:
-        sys.exit("File yang disebut manifest tidak ada: " + ", ".join(missing))
+        sys.exit("Files referenced by the manifest are missing: " + ", ".join(missing))
     if len(manifest.get("description", "")) > 132:
-        sys.exit("Deskripsi manifest lebih dari 132 karakter (batas Web Store).")
+        sys.exit("Manifest description is longer than 132 characters (Web Store limit).")
 
     out_dir = os.path.join(ROOT, "dist")
     os.makedirs(out_dir, exist_ok=True)
@@ -53,7 +53,7 @@ def main():
         for rel in sorted(files):
             z.write(os.path.join(ROOT, rel), rel)
     size = os.path.getsize(out) / 1024
-    print(f"dibuat dist/paperlift-{version}.zip  ({len(files)} file, {size:.0f} KB)")
+    print(f"wrote dist/paperlift-{version}.zip  ({len(files)} files, {size:.0f} KB)")
 
 
 if __name__ == "__main__":

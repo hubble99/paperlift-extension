@@ -1,5 +1,5 @@
-// Data tiruan untuk merender popup di screenshot Web Store (dipakai tools/render-assets.mjs).
-// Disuntikkan ke setiap frame sebelum script halaman berjalan; hanya aktif di popup.html.
+// Mock data for rendering the popup in screenshots (used by tools/render-assets.mjs).
+// Injected into every frame before page scripts run; only active in popup.html.
 (() => {
   if (!location.pathname.endsWith('/popup/popup.html')) return;
   const mock = new URLSearchParams(location.search).get('mock') || 'pdf';
@@ -16,35 +16,35 @@
     return { url: 'data:image/svg+xml,' + encodeURIComponent(svg) };
   };
 
-  const cdn = 'https://cdn.kelas-contoh.id/materi/';
+  const cdn = 'https://cdn.example.com/files/';
   const data = {
     pdf: {
-      tab: { id: 1, title: 'Sesi 3 · Dasar Python', url: 'https://kelas-contoh.id/kursus/python/sesi-3' },
+      tab: { id: 1, title: 'Lesson 3 · Python Basics', url: 'https://learn.example.com/python/lesson-3' },
       state: {
-        frames: { 0: { pdfs: [{ url: cdn + 'Sesi%203%20-%20Dasar%20Python.pdf', kind: 'pdfjs' }] } },
+        frames: { 0: { pdfs: [{ url: cdn + 'Lesson%203%20-%20Python%20Basics.pdf', kind: 'pdfjs' }] } },
         network: {
-          [cdn + 'Latihan%20Soal%20Pekan%203.pdf']: { url: cdn + 'Latihan%20Soal%20Pekan%203.pdf', frameId: 2 },
-          [cdn + 'Cheatsheet%20Python.pdf']: { url: cdn + 'Cheatsheet%20Python.pdf', frameId: 2 },
+          [cdn + 'Week%203%20Exercises.pdf']: { url: cdn + 'Week%203%20Exercises.pdf', frameId: 2 },
+          [cdn + 'Python%20Cheatsheet.pdf']: { url: cdn + 'Python%20Cheatsheet.pdf', frameId: 2 },
         },
         status: {
-          [cdn + 'Sesi%203%20-%20Dasar%20Python.pdf']: { state: 'done', text: 'Tersimpan' },
-          [cdn + 'Latihan%20Soal%20Pekan%203.pdf']: { state: 'working', text: 'Mengunduh…' },
+          [cdn + 'Lesson%203%20-%20Python%20Basics.pdf']: { state: 'done', text: 'Saved' },
+          [cdn + 'Week%203%20Exercises.pdf']: { state: 'working', text: 'Downloading…' },
         },
         job: null,
       },
     },
     slides: {
-      tab: { id: 1, title: 'Pengantar Machine Learning', url: 'https://kelas-contoh.id/kursus/ml/slide-1' },
+      tab: { id: 1, title: 'Introduction to Machine Learning', url: 'https://learn.example.com/ml/slides-1' },
       state: {
         frames: {
           0: {
-            pdfs: [{ url: cdn + 'Ringkasan%20Modul%201.pdf', kind: 'link' }],
+            pdfs: [{ url: cdn + 'Module%201%20Summary.pdf', kind: 'link' }],
             deck: { count: 40, canvas: 0, pending: 0, tainted: 0, ordering: 'attr', thumbs: [1, 2, 3, 4, 5, 6].map(thumb) },
           },
         },
         network: {},
         status: {},
-        job: { kind: 'merge', state: 'running', done: 12, total: 40, text: 'Memproses 13/40' },
+        job: { kind: 'merge', state: 'running', done: 12, total: 40, text: 'Processing 13/40' },
       },
     },
   };
@@ -61,7 +61,7 @@
       storage: { session: { get: async (k) => ({ [k]: st.state }) }, onChanged: { addListener: noop } },
     },
   });
-  // Matikan animasi masuk agar screenshot stabil.
+  // Disable entry animations so screenshots are stable.
   document.documentElement.dataset.shot = '1';
   const style = document.createElement('style');
   style.textContent = '*{animation:none!important;transition:none!important}';

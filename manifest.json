@@ -3,7 +3,7 @@
   "name": "Paperlift — Save PDFs & Slides",
   "short_name": "Paperlift",
   "version": "1.0.0",
-  "description": "Temukan dan simpan PDF yang sudah dimuat di halaman, juga gabungkan slide berbentuk gambar menjadi satu PDF.",
+  "description": "Find and save PDFs already loaded on a page, and merge image-based slides into a single PDF.",
   "homepage_url": "https://github.com/hubble99/paperlift-extension",
   "minimum_chrome_version": "116",
   "permissions": [

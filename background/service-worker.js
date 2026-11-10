@@ -1,21 +1,21 @@
-// Service worker (latar belakang) Paperlift.
-// - Menyimpan hasil deteksi per tab di chrome.storage.session.
-// - Mencatat respons application/pdf lewat webRequest (hanya mengamati).
-// - Mengatur badge jumlah PDF.
-// - Menjalankan download (3 tahap) dan penggabungan slide → PDF.
-// Catatan: service worker MV3 bisa dimatikan Chrome kapan saja saat menganggur,
-// jadi semua yang penting disimpan di storage, bukan di variabel.
+// Paperlift background service worker.
+// - Stores detection results per tab in chrome.storage.session.
+// - Records application/pdf responses via webRequest (observe-only).
+// - Keeps the PDF count badge up to date.
+// - Runs downloads (3 steps) and slide → PDF merging.
+// Note: Chrome can stop an MV3 service worker at any time while idle,
+// so everything important lives in storage, not in variables.
 
 import {
   tabKey, emptyTabState, stripHash, mergePdfs,
   filenameFromContentDisposition, sanitizeFilename, resolvePdfName,
 } from '../lib/shared.js';
 
-const BADGE_COLOR = '#24524F'; // warna merek Paperlift
+const BADGE_COLOR = '#24524F'; // Paperlift brand color
 
-// ---------------- State per tab ----------------
+// ---------------- Per-tab state ----------------
 
-// Antrean per tab supaya baca-ubah-tulis tidak saling menimpa.
+// One queue per tab so read-modify-write updates never overwrite each other.
 const queues = new Map();
 
 function withTab(tabId, fn) {
@@ -23,7 +23,7 @@ function withTab(tabId, fn) {
   const next = prev.then(async () => {
     const key = tabKey(tabId);
     const st = (await chrome.storage.session.get(key))[key] || emptyTabState();
-    if ((await fn(st)) === false) return st; // false = tidak ada perubahan
+    if ((await fn(st)) === false) return st; // false = nothing changed
     await chrome.storage.session.set({ [key]: st });
     await updateBadge(tabId, st);
     return st;
@@ -43,10 +43,10 @@ async function updateBadge(tabId, st) {
     await chrome.action.setBadgeBackgroundColor({ tabId, color: BADGE_COLOR });
     if (chrome.action.setBadgeTextColor) await chrome.action.setBadgeTextColor({ tabId, color: '#ffffff' });
     await chrome.action.setBadgeText({ tabId, text: n ? String(n) : '' });
-  } catch { /* tab sudah ditutup */ }
+  } catch { /* tab already closed */ }
 }
 
-// Setelah state di-reset (pindah halaman, termasuk SPA), minta semua frame lapor ulang.
+// After a reset (navigation, including SPAs), ask every frame to report again.
 const rescanTimers = new Map();
 function scheduleRescan(tabId) {
   clearTimeout(rescanTimers.get(tabId));
@@ -64,7 +64,7 @@ function setJob(tabId, job) {
   return withTab(tabId, (st) => { st.job = job; });
 }
 
-// ---------------- Siklus hidup tab ----------------
+// ---------------- Tab lifecycle ----------------
 
 chrome.tabs.onUpdated.addListener((tabId, info) => {
   if (!info.url) return;
@@ -85,7 +85,7 @@ chrome.tabs.onReplaced.addListener((_added, removed) => {
   chrome.storage.session.remove(tabKey(removed));
 });
 
-// ---------------- webRequest: amati respons PDF ----------------
+// ---------------- webRequest: observe PDF responses ----------------
 
 function headerMap(headers = []) {
   const m = {};
@@ -104,7 +104,7 @@ chrome.webRequest.onHeadersReceived.addListener(
       (ct.includes('octet-stream') && (/\.pdf$/i.test(new URL(url).pathname) || /\.pdf$/i.test(cdName || '')));
 
     if (d.type === 'main_frame') {
-      // Dokumen utama tab berganti → buang hasil halaman sebelumnya.
+      // The tab's main document changed → drop the previous page's results.
       withTab(d.tabId, (st) => {
         if (st.topUrl !== url) { resetTab(st, url); scheduleRescan(d.tabId); }
         else if (!isPdf) return false;
@@ -126,8 +126,8 @@ chrome.webRequest.onHeadersReceived.addListener(
 );
 
 // ---------------- Offscreen document ----------------
-// Service worker tidak punya URL.createObjectURL. Offscreen document = halaman
-// tersembunyi milik extension yang bisa membuat blob URL dan menjalankan pdf-lib.
+// The service worker has no URL.createObjectURL. The offscreen document is a hidden
+// extension page that can create blob URLs and run pdf-lib.
 
 const OFFSCREEN_URL = 'offscreen/offscreen.html';
 let creatingOffscreen = null;
@@ -142,13 +142,13 @@ async function ensureOffscreen() {
     creatingOffscreen = chrome.offscreen.createDocument({
       url: OFFSCREEN_URL,
       reasons: ['BLOBS'],
-      justification: 'Membuat blob URL untuk file yang diunduh dan menyusun PDF dari gambar slide.',
+      justification: 'Create blob URLs for downloaded files and build PDFs from slide images.',
     }).finally(() => { creatingOffscreen = null; });
   }
   await creatingOffscreen;
 }
 
-// Lepas blob URL. Kalau offscreen sudah tertutup, blob-nya sudah ikut hilang.
+// Release a blob URL. If the offscreen document is already closed, the blob is gone too.
 async function revokeBlob(url) {
   const contexts = await chrome.runtime.getContexts({ contextTypes: ['OFFSCREEN_DOCUMENT'] });
   if (contexts.length) chrome.runtime.sendMessage({ target: 'offscreen', op: 'revoke', url }).catch(() => {});
@@ -157,16 +157,16 @@ async function revokeBlob(url) {
 async function off(msg) {
   await ensureOffscreen();
   try {
-    return (await chrome.runtime.sendMessage({ target: 'offscreen', ...msg })) || { ok: false, error: 'Tidak ada balasan.' };
+    return (await chrome.runtime.sendMessage({ target: 'offscreen', ...msg })) || { ok: false, error: 'No response.' };
   } catch (e) {
     return { ok: false, error: String(e && e.message || e) };
   }
 }
 
 // ---------------- Download PDF ----------------
-// Tahap 1: chrome.downloads.download langsung (cookie browser ikut terkirim).
-// Tahap 2: fetch dari content script di frame asal (cookie + Referer seperti halaman).
-// Tahap 3: fetch dari offscreen document (milik extension, bebas CORS, tanpa Referer halaman).
+// Step 1: chrome.downloads.download directly (browser cookies are sent).
+// Step 2: fetch from the content script in the original frame (same cookies + Referer as the page).
+// Step 3: fetch from the offscreen document (extension origin, no CORS limits, no page Referer).
 
 const dlKey = (id) => `dl:${id}`;
 
@@ -183,7 +183,7 @@ async function findEntry(tabId, url) {
 async function downloadPdf(tabId, url) {
   const entry = await findEntry(tabId, url);
   const filename = resolvePdfName(entry, await tabTitle(tabId));
-  await setStatus(tabId, url, 'working', 'Mengunduh…');
+  await setStatus(tabId, url, 'working', 'Downloading…');
   try {
     const id = await chrome.downloads.download({ url, filename, conflictAction: 'uniquify', saveAs: false });
     await chrome.storage.session.set({ [dlKey(id)]: { tabId, url, filename, stage: 'direct' } });
@@ -193,8 +193,8 @@ async function downloadPdf(tabId, url) {
 }
 
 async function fallbackDownload(tabId, url, filename, why) {
-  console.info('[Paperlift] download langsung gagal, mencoba fallback:', why);
-  await setStatus(tabId, url, 'working', 'Mencoba lewat halaman…');
+  console.info('[Paperlift] direct download failed, trying fallback:', why);
+  await setStatus(tabId, url, 'working', 'Trying via the page…');
   const entry = await findEntry(tabId, url);
   const frames = [...entry.frames];
   if (!frames.includes(0)) frames.push(0);
@@ -206,15 +206,15 @@ async function fallbackDownload(tabId, url, filename, why) {
     lastReason = r.reason || lastReason;
   }
 
-  await setStatus(tabId, url, 'working', 'Mencoba lewat extension…');
+  await setStatus(tabId, url, 'working', 'Trying via the extension…');
   const r = await off({ op: 'fetch-pdf', url });
   if (r.ok) return startBlobDownload(tabId, url, r.blobUrl, pickName(filename, entry, r.contentDisposition));
   lastReason = r.error || lastReason;
 
-  await setStatus(tabId, url, 'error', `Gagal: ${friendly(lastReason)}`);
+  await setStatus(tabId, url, 'error', `Failed: ${friendly(lastReason)}`);
 }
 
-// Jika nama awal hanya dari judul halaman, nama dari Content-Disposition lebih tepat.
+// If the first name only came from the page title, a Content-Disposition name is better.
 function pickName(current, entry, cd) {
   const cdName = filenameFromContentDisposition(cd);
   return !entry.filename && cdName ? sanitizeFilename(cdName) : current;
@@ -222,10 +222,10 @@ function pickName(current, entry, cd) {
 
 function friendly(reason) {
   const s = String(reason || '');
-  if (/403|FORBIDDEN/i.test(s)) return 'server menolak akses (403). Lihat README bagian 403.';
-  if (/401|UNAUTHORIZED/i.test(s)) return 'perlu login (401).';
-  if (/Failed to fetch|NetworkError|CORS/i.test(s)) return 'diblokir server (CORS/jaringan).';
-  if (/Could not establish connection|Receiving end/i.test(s)) return 'halaman perlu dimuat ulang.';
+  if (/403|FORBIDDEN/i.test(s)) return 'access denied by the server (403). See Troubleshooting in the README.';
+  if (/401|UNAUTHORIZED/i.test(s)) return 'login required (401).';
+  if (/Failed to fetch|NetworkError|CORS/i.test(s)) return 'blocked by the server (CORS/network).';
+  if (/Could not establish connection|Receiving end/i.test(s)) return 'reload the page and try again.';
   return s.slice(0, 140);
 }
 
@@ -237,7 +237,7 @@ async function viaFrame(tabId, frameId, url) {
   } catch (e) {
     return { ok: false, reason: String(e && e.message || e) };
   }
-  if (!start?.ok) return { ok: false, reason: start?.reason || 'fetch gagal' };
+  if (!start?.ok) return { ok: false, reason: start?.reason || 'fetch failed' };
 
   const key = crypto.randomUUID();
   try {
@@ -246,7 +246,7 @@ async function viaFrame(tabId, frameId, url) {
     let offset = 0;
     do {
       const chunk = await send({ type: 'cs-fetch-chunk', id: start.id, offset });
-      if (!chunk?.ok) throw new Error(chunk?.reason || 'gagal membaca data');
+      if (!chunk?.ok) throw new Error(chunk?.reason || 'could not read the data');
       r = await off({ op: 'blob-append', key, b64: chunk.b64 });
       if (!r.ok) throw new Error(r.error);
       offset = chunk.next;
@@ -268,12 +268,12 @@ async function startBlobDownload(tabId, url, blobUrl, filename) {
     await chrome.storage.session.set({ [dlKey(id)]: { tabId, url, filename, stage: 'blob', blobUrl, slides: !url } });
   } catch (e) {
     revokeBlob(blobUrl);
-    if (url) await setStatus(tabId, url, 'error', `Gagal: ${friendly(e && e.message)}`);
+    if (url) await setStatus(tabId, url, 'error', `Failed: ${friendly(e && e.message)}`);
     else throw e;
   }
 }
 
-// Hasil download dipantau lewat event, karena service worker bisa tidur selama download berjalan.
+// Download results are tracked through events, because the service worker may sleep meanwhile.
 chrome.downloads.onChanged.addListener(async (delta) => {
   const state = delta.state?.current;
   if (state !== 'complete' && state !== 'interrupted') return;
@@ -286,27 +286,27 @@ chrome.downloads.onChanged.addListener(async (delta) => {
 
   if (state === 'complete') {
     if (rec.stage === 'direct') {
-      // Server kadang membalas halaman HTML (login/error) dengan status 200.
+      // Servers sometimes answer with an HTML page (login/error) and status 200.
       const [item] = await chrome.downloads.search({ id: delta.id });
       if (item && /html|text\/plain/i.test(item.mime || '')) {
         await chrome.downloads.removeFile(delta.id).catch(() => {});
         await chrome.downloads.erase({ id: delta.id }).catch(() => {});
-        return fallbackDownload(rec.tabId, rec.url, rec.filename, `respons ${item.mime}, bukan PDF`);
+        return fallbackDownload(rec.tabId, rec.url, rec.filename, `response was ${item.mime}, not a PDF`);
       }
     }
-    if (rec.url) await setStatus(rec.tabId, rec.url, 'done', 'Tersimpan');
+    if (rec.url) await setStatus(rec.tabId, rec.url, 'done', 'Saved');
     return;
   }
 
   const err = delta.error?.current || 'INTERRUPTED';
   if (rec.slides) {
-    await setJob(rec.tabId, { kind: 'merge', state: 'error', text: `Gagal menyimpan PDF: ${friendly(err)}` });
+    await setJob(rec.tabId, { kind: 'merge', state: 'error', text: `Couldn't save the PDF: ${friendly(err)}` });
   } else if (err === 'USER_CANCELED') {
-    if (rec.url) await setStatus(rec.tabId, rec.url, 'error', 'Dibatalkan');
+    if (rec.url) await setStatus(rec.tabId, rec.url, 'error', 'Canceled');
   } else if (rec.stage === 'direct') {
     await fallbackDownload(rec.tabId, rec.url, rec.filename, err);
   } else if (rec.url) {
-    await setStatus(rec.tabId, rec.url, 'error', `Gagal: ${friendly(err)}`);
+    await setStatus(rec.tabId, rec.url, 'error', `Failed: ${friendly(err)}`);
   }
 });
 
@@ -319,28 +319,28 @@ async function downloadAll(tabId) {
   }
 }
 
-// ---------------- Slide → PDF ----------------
+// ---------------- Slides → PDF ----------------
 
 async function mergeSlides(tabId, frameId) {
   const key = tabKey(tabId);
   const st0 = (await chrome.storage.session.get(key))[key];
   if (st0?.job?.state === 'running') return;
 
-  const job = { kind: 'merge', state: 'running', done: 0, total: 0, text: 'Menyiapkan…' };
+  const job = { kind: 'merge', state: 'running', done: 0, total: 0, text: 'Preparing…' };
   await setJob(tabId, job);
   const jobId = crypto.randomUUID();
   try {
     const info = await chrome.tabs.sendMessage(tabId, { type: 'cs-slides-collect' }, { frameId });
-    if (!info?.count) throw new Error('Slide tidak ditemukan lagi di halaman.');
-    const title = (await tabTitle(tabId)) || info.title || 'slide';
-    const filename = sanitizeFilename(title, 'slide');
+    if (!info?.count) throw new Error('The slides are no longer on the page.');
+    const title = (await tabTitle(tabId)) || info.title || 'slides';
+    const filename = sanitizeFilename(title, 'slides');
 
     let r = await off({ op: 'pdf-begin', jobId, title });
     if (!r.ok) throw new Error(r.error);
 
     const skipped = [];
     for (let i = 0; i < info.count; i++) {
-      await setJob(tabId, { ...job, done: i, total: info.count, text: `Memproses ${i + 1}/${info.count}` });
+      await setJob(tabId, { ...job, done: i, total: info.count, text: `Processing ${i + 1}/${info.count}` });
       const page = info.pages[i];
       let got = await chrome.tabs.sendMessage(tabId, { type: 'cs-slide-bytes', index: i }, { frameId })
         .catch((e) => ({ ok: false, reason: String(e) }));
@@ -348,39 +348,39 @@ async function mergeSlides(tabId, frameId) {
       if (got?.ok) {
         res = await off({ op: 'pdf-add', jobId, b64: got.b64, mime: got.mime });
       }
-      // Gambar lintas domain tanpa CORS → coba ambil dari konteks extension.
+      // Cross-origin image without CORS → try fetching it from the extension context.
       if (!res.ok && page.kind === 'img' && page.url && !got?.tainted) {
         res = await off({ op: 'pdf-add', jobId, url: page.url });
       }
       if (!res.ok) skipped.push(i + 1);
     }
-    if (skipped.length === info.count) throw new Error('Tidak ada halaman yang berhasil diambil.');
+    if (skipped.length === info.count) throw new Error('None of the pages could be captured.');
 
-    await setJob(tabId, { ...job, done: info.count, total: info.count, text: 'Menyusun PDF…' });
+    await setJob(tabId, { ...job, done: info.count, total: info.count, text: 'Building the PDF…' });
     r = await off({ op: 'pdf-end', jobId });
     if (!r.ok) throw new Error(r.error);
     await startBlobDownload(tabId, null, r.blobUrl, filename);
 
     const added = info.count - skipped.length;
-    let text = `Selesai: ${added} halaman → ${filename}`;
-    if (skipped.length) text += `. Tidak bisa diambil: hal. ${skipped.join(', ')}`;
+    let text = `Done: ${added} ${added === 1 ? 'page' : 'pages'} → ${filename}`;
+    if (skipped.length) text += `. Skipped (unreadable): page ${skipped.join(', ')}`;
     await setJob(tabId, { ...job, state: 'done', done: info.count, total: info.count, text });
   } catch (e) {
     off({ op: 'pdf-abort', jobId });
-    await setJob(tabId, { ...job, state: 'error', text: `Gagal: ${friendly(e && e.message || e)}` });
+    await setJob(tabId, { ...job, state: 'error', text: `Failed: ${friendly(e && e.message || e)}` });
   }
 }
 
 async function loadAllSlides(tabId, frameId) {
-  await setJob(tabId, { kind: 'load', state: 'running', text: 'Memuat semua slide (maks. 30 detik)…' });
+  await setJob(tabId, { kind: 'load', state: 'running', text: 'Loading all slides (up to 30 seconds)…' });
   try {
     await chrome.tabs.sendMessage(tabId, { type: 'cs-slides-load-all' }, { frameId });
   } catch (e) {
-    await setJob(tabId, { kind: 'load', state: 'error', text: `Gagal: ${friendly(e && e.message)}` });
+    await setJob(tabId, { kind: 'load', state: 'error', text: `Failed: ${friendly(e && e.message)}` });
   }
 }
 
-// ---------------- Pesan ----------------
+// ---------------- Messages ----------------
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || msg.target === 'offscreen') return false;
@@ -391,7 +391,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const frameId = sender.frameId ?? 0;
     withTab(tabId, (st) => {
       const url = stripHash(msg.url || '');
-      // Laporan frame utama dengan URL baru (mis. SPA) → halaman sudah berganti.
+      // Top frame reports a new URL (e.g. an SPA) → the page has changed.
       if (frameId === 0 && url && st.topUrl && st.topUrl !== url) {
         resetTab(st, url);
         scheduleRescan(tabId);
@@ -404,11 +404,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.type === 'load-all-done') {
     const tabId = sender.tab?.id;
-    if (tabId != null) setJob(tabId, { kind: 'load', state: 'done', text: `Selesai memuat: ${msg.count} halaman.` });
+    if (tabId != null) setJob(tabId, { kind: 'load', state: 'done', text: `Finished loading: ${msg.count} pages.` });
     return false;
   }
 
-  // Dari popup
+  // From the popup
   const handlers = {
     'download': () => downloadPdf(msg.tabId, msg.url),
     'download-all': () => downloadAll(msg.tabId),
@@ -418,6 +418,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const h = handlers[msg.type];
   if (!h) return false;
   h().catch((e) => console.warn('[Paperlift]', e));
-  sendResponse({ ok: true }); // popup tidak menunggu; progres dibaca dari storage
+  sendResponse({ ok: true }); // the popup doesn't wait; progress is read from storage
   return false;
 });

@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
   <title>Paperlift</title>
-  <!-- Latar: hijau-teal tua -->
+  <!-- Background: dark teal -->
   <rect x="4" y="4" width="120" height="120" rx="30" fill="#24524F"/>
-  <!-- Lembar halaman di belakang (yang ditinggalkan) -->
+  <!-- Back sheet: the page left behind -->
   <rect x="29" y="36" width="52" height="70" rx="7" fill="#F7F4EE" opacity="0.28" transform="rotate(-9 55 71)"/>
-  <!-- Lembar yang terangkat -->
+  <!-- Front sheet, lifted -->
   <g transform="rotate(7 70 60)">
     <path d="M50 23h28l18 18v51a7 7 0 0 1-7 7H50a7 7 0 0 1-7-7V30a7 7 0 0 1 7-7z" fill="#F7F4EE"/>
-    <!-- Lipatan sudut: aksen terakota -->
+    <!-- Folded corner: terracotta accent -->
     <path d="M78 23v11a7 7 0 0 0 7 7h11z" fill="#E08A5F"/>
-    <!-- Panah unduh -->
+    <!-- Download arrow -->
     <path d="M69.5 46v27" stroke="#24524F" stroke-width="8.5" stroke-linecap="round"/>
     <path d="M57.5 63.5l12 12 12-12" fill="none" stroke="#24524F" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
   </g>

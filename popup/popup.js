@@ -1,6 +1,6 @@
-// Popup Paperlift: menampilkan state tab aktif dan mengirim perintah ke service worker.
-// Pekerjaan berat berjalan di service worker, jadi menutup popup tidak menghentikannya.
-// Tombol langsung bereaksi saat diklik (spinner) tanpa menunggu balasan service worker.
+// Paperlift popup: shows the active tab's state and sends commands to the service worker.
+// Heavy work runs in the service worker, so closing the popup doesn't stop it.
+// Buttons react instantly on click (spinner) without waiting for the service worker.
 
 import { tabKey, emptyTabState, mergePdfs, bestDeck, hostOf, resolvePdfName } from '../lib/shared.js';
 
@@ -11,18 +11,20 @@ const ICON_DL = '<svg class="ico-dl" viewBox="0 0 16 16" aria-hidden="true"><pat
 const ICON_CHECK = '<svg class="ico-check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ICON_FILE = '<svg class="file-ico" viewBox="0 0 28 32" aria-hidden="true"><path d="M5 1.5h12l8 8V28a2.5 2.5 0 0 1-2.5 2.5h-17A2.5 2.5 0 0 1 3 28V4A2.5 2.5 0 0 1 5 1.5z" style="fill:var(--ink-soft)" stroke="currentColor" stroke-width="1.3"/><path d="M17 1.5V7a2.5 2.5 0 0 0 2.5 2.5H25" style="fill:var(--accent)" stroke="currentColor" stroke-width="1.3"/><text x="14" y="23" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor" font-family="system-ui,sans-serif">PDF</text></svg>';
 
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
 let tab = null;
 let currentDeck = null;
 const rows = new Map(); // url → { li, name, host, status, btn, prev, optimistic, doneTimer }
 
-/** Atur tampilan tombol: idle | busy | done | error. */
+/** Set a button's look: idle | busy | done | error. */
 function setBtn(btn, state, label) {
   btn.dataset.state = state;
   if (label != null) btn.querySelector('.label').textContent = label;
   btn.setAttribute('aria-busy', state === 'busy' ? 'true' : 'false');
 }
 
-// ---------------- Daftar PDF ----------------
+// ---------------- PDF list ----------------
 
 function createRow(p) {
   const li = document.createElement('li');
@@ -45,9 +47,9 @@ function createRow(p) {
   };
   row.btn.addEventListener('click', () => {
     row.optimistic = Date.now();
-    setBtn(row.btn, 'busy', 'Mengunduh');
+    setBtn(row.btn, 'busy', 'Downloading');
     send({ type: 'download', tabId: tab.id, url: p.url });
-    setTimeout(refresh, 1600); // kalau service worker tidak membalas, kembalikan tombol
+    setTimeout(refresh, 1600); // restore the button if the service worker never answers
   });
   li.addEventListener('animationend', () => li.classList.remove('enter', 'flash'));
   return row;
@@ -59,25 +61,25 @@ function updateRow(row, p, status) {
   row.name.title = `${name}\n${p.url}`;
   row.host.textContent = hostOf(p.url);
 
-  // Status dari service worker menggantikan status optimis begitu tiba.
+  // The real status from the service worker replaces the optimistic one as soon as it arrives.
   if (status?.state === 'working') row.optimistic = 0;
   const optimistic = row.optimistic && Date.now() - row.optimistic < 1500;
   const state = optimistic ? 'working' : status?.state || null;
 
   row.status.className = 'status' + (state ? ` ${state}` : '');
-  row.status.textContent = optimistic ? '· Mengunduh…' : status ? `· ${status.text}` : '';
+  row.status.textContent = optimistic ? '· Downloading…' : status ? `· ${status.text}` : '';
 
   if (state === 'working') {
     clearTimeout(row.doneTimer);
-    setBtn(row.btn, 'busy', 'Mengunduh');
+    setBtn(row.btn, 'busy', 'Downloading');
   } else if (state === 'done' && row.prev === 'working') {
-    // Baru saja selesai → beri tanda centang sebentar.
-    setBtn(row.btn, 'done', 'Tersimpan');
+    // Just finished: show a check mark for a moment.
+    setBtn(row.btn, 'done', 'Saved');
     row.li.classList.add('flash');
     clearTimeout(row.doneTimer);
     row.doneTimer = setTimeout(() => setBtn(row.btn, 'idle', 'Download'), 1800);
   } else if (state === 'error') {
-    setBtn(row.btn, 'error', 'Coba lagi');
+    setBtn(row.btn, 'error', 'Try again');
   } else if (row.btn.dataset.state !== 'done') {
     setBtn(row.btn, 'idle', 'Download');
   }
@@ -107,15 +109,15 @@ function renderPdfs(st, scannable) {
   $('pdf-empty').hidden = pdfs.length > 0;
 
   if (!scannable) {
-    $('empty-title').textContent = 'Halaman ini tidak bisa dipindai';
-    $('empty-sub').textContent = 'Halaman bawaan Chrome dan Web Store tidak bisa diakses extension.';
+    $('empty-title').textContent = 'This page can’t be scanned';
+    $('empty-sub').textContent = 'Extensions can’t access built-in Chrome pages or the Web Store.';
   } else {
-    $('empty-title').textContent = 'Tidak ada PDF terdeteksi';
-    $('empty-sub').textContent = 'Buka PDF di halaman ini dan Paperlift akan menampilkannya di sini. Baru memasang Paperlift? Muat ulang halaman dulu.';
+    $('empty-title').textContent = 'No PDFs detected';
+    $('empty-sub').textContent = 'Open a PDF on this page and Paperlift will list it here. Just installed Paperlift? Reload the page first.';
   }
 }
 
-// ---------------- Slide ----------------
+// ---------------- Slides ----------------
 
 let lastThumbs = '';
 
@@ -143,7 +145,7 @@ function renderThumbs(deck) {
     } else {
       const blank = document.createElement('div');
       blank.className = 'thumb thumb-blank';
-      blank.textContent = t.tainted ? 'tidak bisa diambil' : '—';
+      blank.textContent = t.tainted ? 'unreadable' : '—';
       thumbs.append(blank);
     }
   }
@@ -167,8 +169,8 @@ function renderSlides(st, scannable) {
   renderThumbs(deck);
 
   const notes = [];
-  if (deck?.tainted) notes.push(`${deck.tainted} canvas tidak bisa diambil dan akan dilewati.`);
-  if (deck?.pending) notes.push(`${deck.pending} gambar belum dimuat, tetapi tetap ikut diambil.`);
+  if (deck?.tainted) notes.push(`${plural(deck.tainted, 'canvas', 'canvases')} can’t be read and will be skipped.`);
+  if (deck?.pending) notes.push(`${plural(deck.pending, 'image', 'images')} not loaded yet, but will still be included.`);
   $('slide-note').textContent = notes.join(' ');
   $('slide-note').hidden = !notes.length;
 
@@ -177,8 +179,8 @@ function renderSlides(st, scannable) {
   const loadAll = $('load-all');
   const mergeBusy = running && job.kind === 'merge';
   const loadBusy = running && job.kind === 'load';
-  setBtn(merge, mergeBusy ? 'busy' : 'idle', mergeBusy ? 'Memproses' : 'Gabung jadi PDF');
-  setBtn(loadAll, loadBusy ? 'busy' : 'idle', loadBusy ? 'Memuat' : 'Muat semua slide');
+  setBtn(merge, mergeBusy ? 'busy' : 'idle', mergeBusy ? 'Processing' : 'Merge into PDF');
+  setBtn(loadAll, loadBusy ? 'busy' : 'idle', loadBusy ? 'Loading' : 'Load all slides');
   merge.disabled = !deck || (running && !mergeBusy);
   loadAll.disabled = !deck || (running && !loadBusy);
 
@@ -195,20 +197,20 @@ function renderSlides(st, scannable) {
   }
 }
 
-// ---------------- Siklus ----------------
+// ---------------- Lifecycle ----------------
 
 async function refresh() {
   if (!tab) return;
   const key = tabKey(tab.id);
   const st = (await chrome.storage.session.get(key))[key] || emptyTabState();
-  try { tab = await chrome.tabs.get(tab.id); } catch { /* tab ditutup */ }
+  try { tab = await chrome.tabs.get(tab.id); } catch { /* tab was closed */ }
   const scannable = /^(https?|file):/i.test(tab.url || '');
   $('host').textContent = scannable ? hostOf(tab.url) : '';
   renderPdfs(st, scannable);
   renderSlides(st, scannable);
 }
 
-/** Klik tombol aksi besar: langsung tampak sibuk, status sebenarnya menyusul dari storage. */
+/** Big action buttons look busy immediately; the real status follows from storage. */
 function pressAction(btn, label, msg) {
   if (btn.dataset.state === 'busy') return;
   setBtn(btn, 'busy', label);
@@ -221,15 +223,15 @@ async function init() {
 
   $('dl-all').addEventListener('click', (e) => {
     const btn = e.currentTarget;
-    pressAction(btn, 'Memulai', { type: 'download-all', tabId: tab.id });
-    for (const row of rows.values()) { row.optimistic = Date.now(); setBtn(row.btn, 'busy', 'Mengunduh'); }
-    setTimeout(() => { setBtn(btn, 'idle', 'Download semua'); refresh(); }, 1200);
+    pressAction(btn, 'Starting', { type: 'download-all', tabId: tab.id });
+    for (const row of rows.values()) { row.optimistic = Date.now(); setBtn(row.btn, 'busy', 'Downloading'); }
+    setTimeout(() => { setBtn(btn, 'idle', 'Download all'); refresh(); }, 1200);
   });
   $('merge').addEventListener('click', (e) => {
-    if (currentDeck) pressAction(e.currentTarget, 'Memproses', { type: 'slides-merge', tabId: tab.id, frameId: currentDeck.frameId });
+    if (currentDeck) pressAction(e.currentTarget, 'Processing', { type: 'slides-merge', tabId: tab.id, frameId: currentDeck.frameId });
   });
   $('load-all').addEventListener('click', (e) => {
-    if (currentDeck) pressAction(e.currentTarget, 'Memuat', { type: 'slides-load-all', tabId: tab.id, frameId: currentDeck.frameId });
+    if (currentDeck) pressAction(e.currentTarget, 'Loading', { type: 'slides-load-all', tabId: tab.id, frameId: currentDeck.frameId });
   });
 
   let pending = null;
@@ -240,7 +242,7 @@ async function init() {
   });
 
   await refresh();
-  // Minta semua frame memindai ulang (mis. canvas yang baru selesai digambar).
+  // Ask every frame to rescan (for example a canvas that just finished drawing).
   chrome.tabs.sendMessage(tab.id, { type: 'rescan' }).catch(() => {});
 }
 

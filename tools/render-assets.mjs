@@ -1,12 +1,12 @@
-// Merender aset merek Paperlift lewat Chrome headless (bukan bagian extension).
-//   - icons/icon{16,32,48,128}.png  dari brand/logo.svg dan brand/logo-small.svg (latar transparan)
-//   - store/screenshot-{1,2,3}.png  1280×800 untuk Chrome Web Store
+// Renders Paperlift's brand assets with headless Chrome (not part of the extension).
+//   - icons/icon{16,32,48,128}.png  from brand/logo.svg and brand/logo-small.svg (transparent)
+//   - store/screenshot-{1,2,3}.png  1280×800 screenshots (README and store listing)
 //   - store/promo-440x280.png       small promo tile
 //
-// Jalankan dari root proyek:
+// Run from the project root:
 //   node tools/render-assets.mjs                         (Node 22+)
 //   node --experimental-websocket tools/render-assets.mjs (Node 20/21)
-// Lokasi Chrome bisa diatur lewat env CHROME_PATH.
+// Set CHROME_PATH to point at a specific Chrome binary.
 
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
 if (typeof WebSocket === 'undefined') {
-  console.error('Butuh Node 22+, atau jalankan dengan: node --experimental-websocket tools/render-assets.mjs');
+  console.error('Needs Node 22+, or run: node --experimental-websocket tools/render-assets.mjs');
   process.exit(1);
 }
 
@@ -30,9 +30,9 @@ const CHROME = process.env.CHROME_PATH || [
   '/usr/bin/google-chrome',
   '/usr/bin/chromium',
 ].find(existsSync);
-if (!CHROME) { console.error('Chrome tidak ditemukan. Set CHROME_PATH.'); process.exit(1); }
+if (!CHROME) { console.error('Chrome not found. Set CHROME_PATH.'); process.exit(1); }
 
-// ---- Server statis kecil untuk root proyek ----
+// ---- Tiny static server for the project root ----
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png' };
 const server = createServer(async (req, res) => {
   const path = resolve(ROOT, '.' + decodeURIComponent(new URL(req.url, 'http://x').pathname));
@@ -88,11 +88,11 @@ async function shoot(url, width, height, out, { transparent = false, dark = fals
   await sleep(150);
   const { data } = await cmd('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width, height, scale: 1 } });
   await writeFile(join(ROOT, out), Buffer.from(data, 'base64'));
-  console.log('dibuat', out);
+  console.log('wrote', out);
 }
 
-// Ikon: logo di tengah dengan padding per ukuran (128 px: area gambar ±96 px sesuai panduan Web Store).
-// 16/32 px memakai brand/logo-small.svg (lebih sederhana agar tetap terbaca).
+// Icons: centered logo with per-size padding (128 px: ~100 px artwork, per Web Store guidelines).
+// 16/32 px use brand/logo-small.svg (simpler, so it stays legible).
 const svgFull = await readFile(join(ROOT, 'brand/logo.svg'), 'utf8');
 const svgSmall = await readFile(join(ROOT, 'brand/logo-small.svg'), 'utf8');
 const iconPage = (svg, size, pad) => 'data:text/html;base64,' + Buffer.from(

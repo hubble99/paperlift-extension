@@ -29,34 +29,34 @@ Developer Dashboard → **New item** → choose the ZIP → fill in the tabs bel
 | Field | Value |
 |---|---|
 | Name | (from manifest) **Paperlift — Save PDFs & Slides** |
-| Summary | (from manifest) Temukan dan simpan PDF yang sudah dimuat di halaman, juga gabungkan slide berbentuk gambar menjadi satu PDF. |
+| Summary | (from manifest) Find and save PDFs already loaded on a page, and merge image-based slides into a single PDF. |
 | Category | Productivity → Tools |
-| Language | Indonesian (the popup UI is Indonesian) |
+| Language | English |
 | Icon | `icons/icon128.png` |
 | Screenshots (1280×800) | `store/screenshot-1.png`, `store/screenshot-2.png`, `store/screenshot-3.png` |
 | Small promo tile (440×280) | `store/promo-440x280.png` |
 | Homepage / Support URL | https://github.com/hubble99/paperlift-extension |
 
-**Description** (copy; Indonesian to match the listing language):
+**Description** (copy):
 
 ```
-Paperlift membantu Anda menyimpan PDF yang sudah tampil di halaman, tetapi tombol unduhnya disembunyikan. Misalnya materi kursus yang ditampilkan lewat viewer pdf.js.
+Paperlift saves PDFs that are already shown on a page but have their download button hidden, such as course notes displayed in an embedded pdf.js viewer.
 
-FITUR
-• Deteksi otomatis: iframe viewer pdf.js (?file=), <embed>/<object>, link .pdf, dan file PDF yang dimuat halaman.
-• Satu klik untuk mengunduh, atau "Download semua".
-• Cara cadangan saat server menolak unduhan langsung (403): file diambil lewat halaman asalnya, dengan sesi login Anda.
-• Slide berbentuk gambar? Paperlift mengenali deretan slide, bisa memuat semuanya (lazy-load), lalu menggabungkannya menjadi satu PDF dalam resolusi terbesar yang tersedia.
-• Nama file rapi dan aman untuk Windows, macOS, dan Linux.
-• Tampilan minimal, mendukung mode gelap.
+FEATURES
+• Automatic detection: pdf.js viewers (?file=), <embed>/<object>, .pdf links, and PDF files loaded by the page.
+• One click to download, or "Download all".
+• Fallback when the server refuses a direct download (403): the file is fetched through the page that loaded it, with your login session.
+• Slides shown as images? Paperlift recognizes the deck, can load every slide (lazy-loading), and merges them into one PDF at the largest available resolution.
+• Clean file names that work on Windows, macOS and Linux.
+• Minimal interface with dark mode.
 
-PRIVASI
-Tanpa akun, tanpa iklan, tanpa pelacakan. Semua proses berjalan lokal di browser; tidak ada data yang dikirim ke server pengembang.
+PRIVACY
+No account, no ads, no tracking. Everything runs locally in your browser; no data is sent to the developer.
 
-BATASAN
-• Hanya untuk materi yang memang bisa Anda akses. Paperlift tidak membongkar DRM atau enkripsi.
-• Tidak mendukung viewer yang tidak pernah mengirim file PDF utuh (mis. Scribd, FlipHTML5).
-• PDF hasil gabungan slide berisi gambar; teksnya tidak bisa disalin.
+LIMITATIONS
+• Only for material you already have access to. Paperlift does not break DRM or encryption.
+• Viewers that never send a complete PDF file (e.g. Scribd, FlipHTML5) aren't supported.
+• PDFs merged from slides contain images; their text can't be selected.
 
 Open source: https://github.com/hubble99/paperlift-extension
 ```

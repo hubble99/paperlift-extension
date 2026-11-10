@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Paperlift</title>
@@ -20,7 +20,7 @@
         <h2 id="pdf-title">PDF <span id="pdf-count" class="pill" hidden></span></h2>
         <button id="dl-all" class="btn btn-ghost btn-sm" hidden>
           <span class="spinner" aria-hidden="true"></span>
-          <span class="label">Download semua</span>
+          <span class="label">Download all</span>
         </button>
       </div>
       <ul id="pdf-list" class="list"></ul>
@@ -30,14 +30,14 @@
           <path d="M28 6v7a3 3 0 0 0 3 3h7" fill="none" stroke="currentColor" stroke-width="2"/>
           <path d="M18 27h12M18 33h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
-        <p id="empty-title" class="empty-title">Tidak ada PDF terdeteksi</p>
+        <p id="empty-title" class="empty-title">No PDFs detected</p>
         <p id="empty-sub" class="empty-sub"></p>
       </div>
     </section>
 
     <section id="slide-section" class="block card" hidden aria-labelledby="slide-title">
       <div class="block-head">
-        <h2 id="slide-title">Slide terdeteksi: <span id="slide-count">0</span> halaman</h2>
+        <h2 id="slide-title">Slides detected: <span id="slide-count">0</span> pages</h2>
       </div>
       <div id="thumbs" class="thumbs"></div>
       <p id="slide-note" class="note" hidden></p>
@@ -48,19 +48,19 @@
       <div class="actions">
         <button id="merge" class="btn btn-primary">
           <span class="spinner" aria-hidden="true"></span>
-          <span class="label">Gabung jadi PDF</span>
+          <span class="label">Merge into PDF</span>
         </button>
         <button id="load-all" class="btn btn-ghost">
           <span class="spinner" aria-hidden="true"></span>
-          <span class="label">Muat semua slide</span>
+          <span class="label">Load all slides</span>
         </button>
       </div>
     </section>
   </main>
 
   <footer class="foot">
-    <span>Hanya untuk materi yang bisa Anda akses.</span>
-    <a href="https://github.com/hubble99/paperlift-extension#readme" target="_blank" rel="noopener">Bantuan</a>
+    <span>Only for material you have access to.</span>
+    <a href="https://github.com/hubble99/paperlift-extension#readme" target="_blank" rel="noopener">Help</a>
   </footer>
 
   <script src="popup.js" type="module"></script>
