@@ -4,7 +4,7 @@
   "short_name": "Paperlift",
   "version": "1.0.0",
   "description": "Temukan dan simpan PDF yang sudah dimuat di halaman, juga gabungkan slide berbentuk gambar menjadi satu PDF.",
-  "homepage_url": "https://github.com/hubble99/pptx-downloader-extension",
+  "homepage_url": "https://github.com/hubble99/paperlift-extension",
   "minimum_chrome_version": "116",
   "permissions": [
     "storage",

@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/hubble99/pptx-downloader-extension/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/hubble99/pptx-downloader-extension?label=release&color=24524F"></a>
+  <a href="https://github.com/hubble99/paperlift-extension/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/hubble99/paperlift-extension?label=release&color=24524F"></a>
   <img alt="Manifest V3" src="https://img.shields.io/badge/manifest-v3-24524F">
   <img alt="Chrome 116+" src="https://img.shields.io/badge/chrome-116%2B-24524F">
   <img alt="No tracking" src="https://img.shields.io/badge/tracking-none-E08A5F">
@@ -105,7 +105,7 @@ Microsoft Edge, Brave, Opera and Vivaldi.
 Choose **one** of these:
 
 - **Option A (recommended): from Releases**
-  1. Go to the [latest release](https://github.com/hubble99/pptx-downloader-extension/releases/latest).
+  1. Go to the [latest release](https://github.com/hubble99/paperlift-extension/releases/latest).
   2. Under **Assets**, download `paperlift-<version>.zip`.
 
 - **Option B: the full source as a ZIP**
@@ -114,7 +114,7 @@ Choose **one** of these:
 
 - **Option C: with Git**
   ```bash
-  git clone https://github.com/hubble99/pptx-downloader-extension.git
+  git clone https://github.com/hubble99/paperlift-extension.git
   ```
 
 ### Step 2: Unzip it to a permanent folder
@@ -128,7 +128,7 @@ Choose **one** of these:
 > every time it starts.
 
 Open the folder and check that `manifest.json` is directly inside it. With Option B the
-folder is called `pptx-downloader-extension-main`.
+folder is called `paperlift-extension-main`.
 
 ### Step 3: Load it into Chrome
 
@@ -343,7 +343,7 @@ The installation folder was probably moved, renamed or deleted. Put it back, or 
 again from [Step 3](#step-3-load-it-into-chrome).
 </details>
 
-Still stuck? [Open an issue](https://github.com/hubble99/pptx-downloader-extension/issues).
+Still stuck? [Open an issue](https://github.com/hubble99/paperlift-extension/issues).
 Include the website type (not private links), what you clicked, and the error text.
 
 ## Development

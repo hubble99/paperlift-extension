@@ -47,4 +47,4 @@ effective date.
 ## Contact
 
 Questions or reports: open an issue at
-https://github.com/hubble99/pptx-downloader-extension/issues
+https://github.com/hubble99/paperlift-extension/issues

@@ -1,7 +1,7 @@
 # Publishing to the Chrome Web Store (optional)
 
 Paperlift is currently distributed through
-[GitHub Releases](https://github.com/hubble99/pptx-downloader-extension/releases) only.
+[GitHub Releases](https://github.com/hubble99/paperlift-extension/releases) only.
 These notes are kept in case it's published to the Chrome Web Store later.
 
 ## 1. Developer account
@@ -35,7 +35,7 @@ Developer Dashboard → **New item** → choose the ZIP → fill in the tabs bel
 | Icon | `icons/icon128.png` |
 | Screenshots (1280×800) | `store/screenshot-1.png`, `store/screenshot-2.png`, `store/screenshot-3.png` |
 | Small promo tile (440×280) | `store/promo-440x280.png` |
-| Homepage / Support URL | https://github.com/hubble99/pptx-downloader-extension |
+| Homepage / Support URL | https://github.com/hubble99/paperlift-extension |
 
 **Description** (copy; Indonesian to match the listing language):
 
@@ -58,7 +58,7 @@ BATASAN
 • Tidak mendukung viewer yang tidak pernah mengirim file PDF utuh (mis. Scribd, FlipHTML5).
 • PDF hasil gabungan slide berisi gambar; teksnya tidak bisa disalin.
 
-Open source: https://github.com/hubble99/pptx-downloader-extension
+Open source: https://github.com/hubble99/paperlift-extension
 ```
 
 ### "Privacy practices" tab
@@ -81,7 +81,7 @@ Open source: https://github.com/hubble99/pptx-downloader-extension
 certification statements.
 
 **Privacy policy URL:**
-https://github.com/hubble99/pptx-downloader-extension/blob/main/PRIVACY.md
+https://github.com/hubble99/paperlift-extension/blob/main/PRIVACY.md
 
 ### "Distribution" tab
 - Visibility: **Public**, or *Unlisted* for a limited test via link.

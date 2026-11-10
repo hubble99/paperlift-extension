@@ -12,7 +12,7 @@ untuk pemakaian pribadi.
 **Bukan tujuan:** membongkar DRM/enkripsi, atau viewer yang tidak pernah mengirim file
 PDF utuh (Scribd, FlipHTML5, dsb.).
 
-Repo: https://github.com/hubble99/pptx-downloader-extension (branch `main`).
+Repo: https://github.com/hubble99/paperlift-extension (branch `main`).
 Commit/push hanya jika pengguna meminta.
 
 ## Struktur folder
