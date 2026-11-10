@@ -1,166 +1,382 @@
-<p align="center"><img src="brand/logo.svg" width="88" alt="Logo Paperlift"></p>
+<p align="center"><img src="brand/logo.svg" width="96" alt="Paperlift logo"></p>
 
 <h1 align="center">Paperlift</h1>
-<p align="center">Simpan PDF &amp; slide dari halaman web dengan satu klik.</p>
 
-Paperlift adalah Chrome extension (Manifest V3) untuk mengunduh PDF yang **sudah dimuat** di
-halaman tetapi tombol download-nya disembunyikan. Contohnya course player yang menampilkan
-PDF lewat iframe pdf.js. Paperlift juga bisa menggabungkan slide yang ditampilkan sebagai
-gambar menjadi satu PDF.
+<p align="center">
+  <b>Save PDFs and image-based slides from any web page, in one click.</b><br>
+  A lightweight Chrome extension (Manifest V3). No account, no tracking, everything runs locally.
+</p>
 
-![Tampilan Paperlift](store/screenshot-1.png)
+<p align="center">
+  <a href="https://github.com/hubble99/pptx-downloader-extension/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/hubble99/pptx-downloader-extension?label=release&color=24524F"></a>
+  <img alt="Manifest V3" src="https://img.shields.io/badge/manifest-v3-24524F">
+  <img alt="Chrome 116+" src="https://img.shields.io/badge/chrome-116%2B-24524F">
+  <img alt="No tracking" src="https://img.shields.io/badge/tracking-none-E08A5F">
+</p>
 
-> Hanya untuk materi yang memang bisa Anda akses, untuk pemakaian pribadi.
-> Paperlift tidak membongkar DRM atau enkripsi.
+<p align="center"><img src="store/screenshot-1.png" width="760" alt="Paperlift popup showing detected PDFs"></p>
 
-## Instalasi
+Some sites show a PDF on the page but hide the download button. A common example is an
+online course player that displays lecture notes inside an embedded pdf.js viewer. The file
+is already loaded in your browser, but there's no easy way to save it.
 
-**Dari Chrome Web Store:** cari "Paperlift", lalu klik *Add to Chrome*. Tautan akan
-ditambahkan setelah lolos review.
+Paperlift finds those PDFs and lets you save them with one click. It can also merge slides
+shown as a series of images into a single PDF.
 
-**Manual (developer mode):**
-1. Unduh atau clone repo ini.
-2. Buka `chrome://extensions`.
-3. Aktifkan **Developer mode** (pojok kanan atas).
-4. Klik **Load unpacked**, lalu pilih folder yang berisi `manifest.json`.
-5. (Opsional) Sematkan ikon lewat ikon puzzle 🧩 di toolbar.
+> [!IMPORTANT]
+> Paperlift is for material you already have legitimate access to, for personal use.
+> It does **not** break DRM or encryption, and it can't download anything your browser
+> hasn't been allowed to load.
 
-Butuh Chrome 116 atau lebih baru. Tab yang sudah terbuka **sebelum** extension dipasang
-atau di-reload harus dimuat ulang dulu.
+## Contents
 
-## Cara pakai
+- [Features](#features)
+- [Installation](#installation)
+- [How to use](#how-to-use)
+- [Updating and uninstalling](#updating-and-uninstalling)
+- [How it works](#how-it-works)
+- [Permissions](#permissions)
+- [Privacy](#privacy)
+- [Limitations](#limitations)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [Credits](#credits)
 
-### PDF
-1. Buka halaman yang menampilkan PDF.
-2. Angka di ikon extension (badge) menunjukkan jumlah PDF yang terdeteksi.
-3. Klik ikon. Popup menampilkan nama file dan domain tiap PDF.
-4. Klik **Download** pada satu item, atau **Download semua** (muncul jika ada ≥2 PDF).
-   Status muncul di bawah nama: *Mengunduh…*, *Tersimpan*, atau *Gagal: …*.
+## Features
 
-Yang dideteksi:
-- iframe/embed viewer pdf.js dengan parameter `?file=` (URL-nya otomatis di-decode),
-- `<embed>` / `<object>` bertipe `application/pdf` atau berakhiran `.pdf`,
-- link `<a href>` yang berakhiran `.pdf`,
-- semua respons jaringan dengan `Content-Type: application/pdf` di tab tersebut.
+### PDF detection
+- **pdf.js viewers.** Reads the real file URL from the `?file=` parameter of embedded
+  pdf.js viewers (iframes or full pages), including ones hosted on another domain or CDN.
+- **`<embed>` and `<object>`** elements that show a PDF.
+- **Links to `.pdf` files** on the page, including links with a `download` attribute.
+- **Network detection.** Any response in the tab with `Content-Type: application/pdf` is
+  picked up, even if it never appears in the page markup.
+- **Works in every frame.** Nested iframes are scanned as well.
+- **No duplicates.** The same file found in several ways is listed once.
+- **Badge counter.** The toolbar icon shows how many PDFs were found on the current tab.
+- **Per-tab and temporary.** The list is cleared when you close the tab or navigate away.
 
-Hasil yang sama dari beberapa sumber hanya ditampilkan sekali. Daftar dihapus saat tab
-ditutup atau pindah halaman.
+### Downloading
+- **One-click download** for a single file, or **Download all** when there are two or more.
+- **Automatic fallback when the server refuses** (for example `403 Forbidden`, or an HTML
+  error page instead of a PDF). Paperlift then fetches the file from inside the frame that
+  originally loaded it, using the same login session and referrer as the page. See
+  [How it works](#how-it-works).
+- **Content check.** A file is only saved if it really is a PDF. Fake HTML "PDFs" are
+  removed and retried another way.
+- **Clean file names.** The name comes from the server's `Content-Disposition` header,
+  then from the URL, then from the page title. Characters that aren't allowed on Windows,
+  macOS or Linux are removed, and so are reserved names like `CON`.
+- **Keeps running in the background.** You can close the popup while a download is in progress.
 
-### Slide berbentuk gambar
-Jika halaman menampilkan ≥3 gambar/canvas besar berurutan dengan rasio yang sama,
-popup menampilkan **Slide terdeteksi: N halaman** beserta thumbnail kecil.
+### Image slides to PDF
+- **Slide deck detection.** Paperlift recognizes a deck when the page shows three or more
+  large images or canvases in a row with the same aspect ratio. Logos, avatars, icons and
+  photo galleries are ignored.
+- **Correct page order.** Slides are ordered by `data-page`-style attributes, "Slide N"
+  labels, or numbers in the file names. If none of these is reliable, page order is used.
+- **Best available resolution.** Picks the largest image from `srcset` and lazy-load
+  attributes (`data-src`, `data-original`, …).
+- **Load all slides.** Auto-scrolls the page so lazy-loaded slides appear. It stops when no
+  new slides show up or after 30 seconds, then returns you to where you were.
+- **Merge into PDF** with live progress (`Processing 12/40`). Each slide becomes one page
+  at its original size. JPEG and PNG are embedded as-is. WebP, AVIF, GIF, BMP and SVG are
+  converted automatically.
+- **Canvas support.** Slides drawn on `<canvas>` are included. Canvases the browser won't
+  let extensions read are skipped, and Paperlift tells you which page numbers were skipped.
 
-- **Muat semua slide**: halaman di-scroll otomatis sampai jumlah slide berhenti bertambah
-  (maksimal 30 detik), lalu posisi scroll dikembalikan. Pakai ini untuk halaman yang
-  memuat slide sambil di-scroll (lazy-load).
-- **Gabung jadi PDF**: tiap gambar diambil dalam resolusi terbesar yang tersedia, lalu
-  disusun menjadi satu PDF (satu gambar per halaman, ukuran halaman = ukuran gambar).
-  Nama file = judul halaman + `.pdf`. Progres tampil sebagai *Memproses 12/40*.
-  Popup boleh ditutup; prosesnya tetap berjalan.
+### Interface
+- Small, calm popup with instant visual feedback on every click, and light and dark mode.
+- Respects your system's *reduce motion* setting.
 
-## Cara kerja download
+<p align="center">
+  <img src="store/screenshot-2.png" width="49%" alt="Slide deck detected and merged into a PDF">
+  <img src="store/screenshot-3.png" width="49%" alt="Paperlift in dark mode">
+</p>
 
-1. **Langsung**: `chrome.downloads.download`. Browser mengirim cookie Anda.
-2. **Lewat halaman**: jika cara 1 gagal (mis. 403) atau server membalas halaman HTML,
-   file di-fetch dari dalam frame tempat PDF itu dimuat, sehingga cookie dan *Referer*
-   sama seperti saat halaman membukanya. Data diteruskan ke extension dan disimpan.
-3. **Lewat extension**: upaya terakhir. Fetch dari konteks extension, yang tidak terkena
-   aturan CORS tetapi juga tidak membawa Referer halaman.
+## Installation
 
-Nama file diambil dari header `Content-Disposition`, lalu dari path URL (jika berakhiran
-`.pdf`), lalu dari judul halaman. Karakter yang tidak boleh dipakai di nama file dibuang.
+Paperlift isn't on the Chrome Web Store. You install it manually, which takes about a
+minute. It works in **Google Chrome 116 or newer** and in other Chromium browsers such as
+Microsoft Edge, Brave, Opera and Vivaldi.
 
-## Istilah singkat
+### Step 1: Download Paperlift
 
-| Istilah | Arti sederhana |
+Choose **one** of these:
+
+- **Option A (recommended): from Releases**
+  1. Go to the [latest release](https://github.com/hubble99/pptx-downloader-extension/releases/latest).
+  2. Under **Assets**, download `paperlift-<version>.zip`.
+
+- **Option B: the full source as a ZIP**
+  1. On this repository's main page, click the green **Code** button.
+  2. Click **Download ZIP**.
+
+- **Option C: with Git**
+  ```bash
+  git clone https://github.com/hubble99/pptx-downloader-extension.git
+  ```
+
+### Step 2: Unzip it to a permanent folder
+
+1. Right-click the downloaded ZIP and choose **Extract All…** (Windows), or double-click it
+   (macOS).
+2. Move the extracted folder somewhere it can stay, for example `Documents\Paperlift`.
+
+> [!WARNING]
+> Don't delete or move this folder after installing. Chrome loads the extension from it
+> every time it starts.
+
+Open the folder and check that `manifest.json` is directly inside it. With Option B the
+folder is called `pptx-downloader-extension-main`.
+
+### Step 3: Load it into Chrome
+
+1. Open a new tab and go to **`chrome://extensions`**.
+   (Edge: `edge://extensions`, Brave: `brave://extensions`.)
+2. Turn on **Developer mode** with the toggle in the top-right corner.
+3. Click **Load unpacked**.
+4. Select the folder from Step 2, the one that contains `manifest.json`, and click
+   **Select Folder**.
+5. **Paperlift** now appears in your list of extensions.
+
+### Step 4: Pin the icon (optional, recommended)
+
+Click the puzzle-piece icon 🧩 in the Chrome toolbar, then click the pin 📌 next to
+**Paperlift**. The icon and its counter badge now stay visible.
+
+### Step 5: Reload your open tabs
+
+Tabs that were already open before you installed Paperlift can't be scanned until you
+reload them (`F5` or `Ctrl+R`, or `Cmd+R` on macOS).
+
+That's it. Open a page with a PDF and click the Paperlift icon.
+
+## How to use
+
+### Saving PDFs
+
+1. Open the page that shows the PDF, for example a course lesson with lecture notes.
+   If the player only loads the file when you open the material, open it first.
+2. The number on the Paperlift icon shows how many PDFs were found.
+3. Click the icon. The popup lists every PDF with its file name and source website.
+4. Click **Download** next to a file, or **Download semua** (*Download all*) to save every file.
+5. The file is saved to your normal Downloads folder. The button briefly shows
+   **Tersimpan** (*Saved*) ✓.
+
+If the first attempt is refused, you'll see *Mencoba lewat halaman…* (*Trying via the
+page…*) while Paperlift switches to the fallback method automatically. You don't need to do
+anything.
+
+### Merging image slides into one PDF
+
+When a page shows a presentation as a series of images, the popup displays
+**Slide terdeteksi: N halaman** (*Slides detected: N pages*) with a few thumbnails.
+
+1. If the page loads slides as you scroll, click **Muat semua slide** (*Load all slides*)
+   first. Wait until it finishes (30 seconds at most), then reopen the popup to see the new
+   count.
+2. Click **Gabung jadi PDF** (*Merge into PDF*).
+3. Watch the progress (`Memproses 12/40`). You can close the popup, because the work
+   continues in the background.
+4. The PDF is saved to your Downloads folder, named after the page title.
+
+### Interface language
+
+The popup is currently in **Indonesian**. Here's what each label means:
+
+| Popup label | Meaning |
 |---|---|
-| **pdf.js** | Penampil PDF berbasis JavaScript yang dipakai banyak situs |
-| **iframe** | Halaman kecil di dalam halaman |
-| **Referer** | Header berisi alamat halaman asal permintaan; sebagian server menolak permintaan tanpa Referer yang "benar" |
-| **403 Forbidden** | Server menolak memberikan file |
-| **CORS** | Aturan browser yang membatasi halaman membaca file dari domain lain |
-| **Canvas tainted** | Canvas yang pernah digambari gambar dari domain lain tanpa izin, sehingga isinya tidak boleh dibaca |
-| **Lazy-load** | Gambar baru dimuat saat di-scroll mendekatinya |
-| **Service worker** | Bagian extension yang berjalan di latar belakang |
-| **Offscreen document** | Halaman tersembunyi milik extension untuk membuat file sebelum disimpan |
+| Download | Download this file |
+| Download semua | Download all |
+| Gabung jadi PDF | Merge into PDF |
+| Muat semua slide | Load all slides |
+| Slide terdeteksi: *N* halaman | Slides detected: *N* pages |
+| Mengunduh… | Downloading… |
+| Mencoba lewat halaman… | Trying via the page (fallback)… |
+| Tersimpan | Saved |
+| Gagal: … | Failed: … (followed by the reason) |
+| Coba lagi | Try again |
+| Memproses 12/40 | Processing 12 of 40 |
+| Tidak ada PDF terdeteksi | No PDFs detected |
+| Halaman ini tidak bisa dipindai | This page can't be scanned (for example `chrome://` pages) |
+| Hanya untuk materi yang bisa Anda akses. | Only for material you have access to. |
 
-## Permission
+## Updating and uninstalling
 
-| Permission | Alasan |
+**Update**
+1. Download the new version (see [Step 1](#step-1-download-paperlift)).
+2. Replace the contents of your Paperlift folder with the new files. Keep the same folder location.
+3. Go to `chrome://extensions` and click the reload icon ↻ on the Paperlift card.
+4. Reload any open tabs you want to use it on.
+
+If you used Git, run `git pull` inside the folder instead of steps 1–2.
+
+**Uninstall**
+Go to `chrome://extensions`, click **Remove** on the Paperlift card, then delete the folder.
+
+## How it works
+
+Paperlift tries up to three ways to save a PDF and stops at the first one that works:
+
+1. **Direct download.** It asks Chrome to download the file URL normally. Your cookies are
+   sent, just like clicking a link.
+2. **Through the page.** If the server refuses (`403`) or returns an HTML page instead of a
+   PDF, the file is fetched from inside the frame that loaded it. The request then looks
+   exactly like the viewer's own request: same cookies, same referrer. The bytes are passed
+   to the extension and saved.
+3. **Through the extension.** As a last resort, the file is fetched from the extension
+   itself. Cross-origin (CORS) rules don't apply there, but the page's referrer isn't sent.
+
+For slides, each image is collected at its best resolution. Paperlift reads it from the
+page, from a canvas, or through the extension when the page isn't allowed to read it.
+Everything is then assembled into a PDF locally with [pdf-lib](https://pdf-lib.js.org/).
+
+<details>
+<summary>Glossary of technical terms</summary>
+
+| Term | In plain words |
 |---|---|
-| `storage` | Menyimpan daftar PDF/slide per tab di memori sesi (hilang saat browser ditutup) |
-| `webRequest` | Hanya **mengamati** header respons untuk mengenali file PDF; tidak mengubah atau memblokir apa pun |
-| `downloads` | Menyimpan file ke folder Downloads dan mengecek hasilnya |
-| `offscreen` | Membuat file (blob) untuk disimpan dan menyusun PDF dari slide; service worker tidak bisa melakukannya sendiri |
-| `<all_urls>` | PDF dan gambar bisa berasal dari domain mana saja (mis. CDN terpisah dari situs kursus) |
+| **pdf.js** | A PDF viewer that runs inside web pages; many sites use it |
+| **iframe** | A small web page embedded inside another page |
+| **Referrer** | A header that tells the server which page a request came from. Some servers refuse requests without the "right" one |
+| **403 Forbidden** | The server refused to hand over the file |
+| **CORS** | Browser rules that stop a page from reading files from another domain |
+| **Tainted canvas** | A canvas that contains an image from another domain without permission, so its pixels can't be read |
+| **Lazy-loading** | Images that only load when you scroll near them |
+| **Service worker** | The part of the extension that runs in the background |
+| **Offscreen document** | A hidden extension page used to build files before saving them |
 
-## Batasan
+</details>
 
-- **Tidak mendukung viewer yang tidak pernah mengirim file PDF utuh**, misalnya Scribd,
-  FlipHTML5, Issuu, atau slide yang dirender sebagai potongan gambar/canvas dengan cara
-  khusus. Fitur "slide gambar" hanya bekerja jika tiap halaman adalah satu gambar/canvas utuh.
-- **Tidak membongkar DRM atau enkripsi.** PDF terenkripsi diunduh apa adanya.
-- **Hasil "Gabung jadi PDF" berupa gambar.** Teks di dalamnya tidak bisa di-copy, dicari,
-  atau diedit.
-- Canvas yang *tainted* tidak bisa diambil dan dilewati (nomor halamannya ditampilkan).
-  Canvas WebGL bisa menghasilkan halaman kosong.
-- Carousel yang hanya memuat slide berikutnya saat tombol "Next" diklik tidak ikut termuat
-  oleh **Muat semua slide**. Klik sampai slide terakhir dulu secara manual.
-- URL `blob:` / `data:` di parameter `?file=` tidak dideteksi sebagai PDF.
-- Halaman `chrome://`, Chrome Web Store, dan file lokal (tanpa izin "Allow access to file URLs")
-  tidak bisa dipindai.
+## Permissions
+
+Chrome will show these permissions when you install. Here's why each one is needed:
+
+| Permission | Why |
+|---|---|
+| `storage` | Keeps the list of detected PDFs and slides for each tab in session memory. It's cleared when the browser closes. |
+| `webRequest` | **Observes** response headers to recognize PDF files. It never blocks or changes any request. |
+| `downloads` | Saves files to your Downloads folder and checks whether each download succeeded. |
+| `offscreen` | Builds the file (for example a merged slide PDF) before handing it to Chrome. The background worker can't do this itself. |
+| Access to all sites | PDFs and slide images can come from any domain, often a CDN separate from the site you're on. |
+
+Paperlift doesn't use the `tabs`, `scripting`, `history` or `cookies` permissions.
+
+## Privacy
+
+No account, no ads, no analytics, and no remote code. Nothing is sent to the developer or to
+any third party. Detected URLs are kept only in temporary session memory, and downloaded
+files go straight from the original website to your computer.
+Full policy: [PRIVACY.md](PRIVACY.md).
+
+## Limitations
+
+- **Viewers that never send a complete PDF aren't supported**, for example Scribd,
+  FlipHTML5, Issuu, or players that stream pages as tiles. Slide merging only works when each
+  page is one complete image or canvas.
+- **No DRM or encryption removal.** Encrypted PDFs are saved exactly as the server sends them.
+- **Merged slide PDFs contain images.** Their text can't be selected, searched or edited.
+- **Some canvases can't be read** (tainted, see the glossary above). Those pages are skipped
+  and listed. WebGL canvases may come out blank.
+- **Click-through carousels.** Slides that only load when you press "Next" aren't loaded by
+  *Load all slides*. Click through to the last slide manually first.
+- **Special URLs aren't detected.** `blob:` and `data:` URLs inside a viewer's `?file=`
+  parameter are skipped.
+- **Pages extensions can't access.** Paperlift can't scan `chrome://` pages or the Chrome
+  Web Store. Local `file://` pages only work if you enable *Allow access to file URLs* on the
+  extension's details page.
 
 ## Troubleshooting
 
-### Gagal: server menolak akses (403)
-1. Pastikan Anda masih login dan PDF tampil normal di halaman. Muat ulang halaman, lalu coba lagi.
-2. Extension otomatis mencoba cara 2 (fetch dari frame asal). Jika tetap 403, kemungkinan:
-   - URL-nya bertanda tangan dan sudah kedaluwarsa (umum di CDN). Muat ulang halaman supaya
-     viewer meminta URL baru, lalu langsung klik Download.
-   - Server memeriksa hal lain selain cookie/Referer (token di header khusus). Situs seperti
-     ini tidak didukung.
-3. Buka `chrome://extensions` → Paperlift → **service worker** (tautan "Inspect views")
-   → tab Console. Pesan `download langsung gagal, mencoba fallback` menunjukkan alasan cara 1 gagal.
+<details>
+<summary><b>"Manifest file is missing or unreadable" when loading</b></summary>
 
-### PDF tidak muncul di daftar
-- Muat ulang halaman (wajib setelah memasang/me-reload extension).
-- Buka PDF-nya dulu di halaman (beberapa player baru memuat file saat materi dibuka).
-- Jika PDF dimuat sebelum extension aktif, deteksi jaringan tidak sempat mencatatnya.
-  Muat ulang halaman.
+You selected the wrong folder. Pick the folder that has `manifest.json` **directly** inside
+it. After unzipping there is sometimes an extra folder level, so open it and select the
+inner folder.
+</details>
 
-### Gagal: diblokir server (CORS/jaringan)
-Frame asal tidak diizinkan membaca file, dan fetch dari extension juga ditolak. Coba
-buka halaman viewer-nya langsung di tab baru (klik kanan iframe → buka frame), lalu ulangi.
+<details>
+<summary><b>The popup says "Tidak ada PDF terdeteksi" (No PDFs detected)</b></summary>
 
-### Slide tidak terdeteksi
-- Slide harus tampil cukup besar (lebar ≥300 px) dan minimal 3 buah. Perbesar jendela.
-- Gambar yang dipisahkan paragraf teks dianggap galeri/artikel, bukan slide.
-- Klik **Muat semua slide**, lalu buka popup lagi.
+- Reload the page. This is required after installing or reloading the extension.
+- Open the PDF in the page first. Some players only load the file when you open the lesson.
+- If the PDF loaded before Paperlift was active, the network detector missed it. Reload the
+  page.
+</details>
 
-## Privasi
+<details>
+<summary><b>"Gagal: server menolak akses (403)" (Failed: access denied)</b></summary>
 
-Tanpa akun, tanpa iklan, tanpa pelacakan. Semua proses berjalan lokal di browser.
-Lihat [PRIVACY.md](PRIVACY.md).
+1. Make sure you're still logged in and the PDF displays normally. Reload the page and try again.
+2. Paperlift already retries through the page automatically. If it still fails:
+   - The link may be a signed URL that has expired, which is common on CDNs. Reload the
+     page so the viewer gets a fresh link, then click **Download** right away.
+   - The server may require something other than cookies and referrer, such as a special
+     token header. Sites like this aren't supported.
+3. For details, go to `chrome://extensions` → Paperlift → **service worker** (under
+   *Inspect views*) → **Console**.
+</details>
 
-## Pengembangan
+<details>
+<summary><b>"Gagal: diblokir server (CORS/jaringan)" (Failed: blocked by the server)</b></summary>
 
-| Perintah | Fungsi |
+Neither the page nor the extension was allowed to read the file. Try opening the viewer on
+its own: right-click inside the PDF viewer, open the frame in a new tab, then use Paperlift
+there.
+</details>
+
+<details>
+<summary><b>Slides aren't detected</b></summary>
+
+- Slides must be shown reasonably large (at least 300 px wide), and there must be at least 3
+  of them. Try making the window bigger.
+- Images separated by paragraphs of text are treated as an article or gallery, not a deck.
+- Click **Muat semua slide** (*Load all slides*), then reopen the popup.
+</details>
+
+<details>
+<summary><b>The extension disappeared or shows an error after restarting Chrome</b></summary>
+
+The installation folder was probably moved, renamed or deleted. Put it back, or install
+again from [Step 3](#step-3-load-it-into-chrome).
+</details>
+
+Still stuck? [Open an issue](https://github.com/hubble99/pptx-downloader-extension/issues).
+Include the website type (not private links), what you clicked, and the error text.
+
+## Development
+
+Plain JavaScript with no framework, no build step and no npm dependencies. Edit a file,
+click ↻ on `chrome://extensions`, then reload the tab.
+
+```
+manifest.json                Extension configuration (Manifest V3)
+background/service-worker.js Per-tab state, network detection, badge, 3-step download, slide merging
+content/content.js           Runs in every frame: finds PDFs, detects slide decks, fetches from the page
+offscreen/                   Hidden page: builds blobs, converts images, runs pdf-lib
+popup/                       The popup UI (HTML, CSS, JS)
+lib/shared.js                Helpers shared by the worker and popup (file names, merging lists)
+vendor/pdf-lib.min.js        pdf-lib 1.17.1, bundled (MIT)
+icons/  brand/               Rendered icons and their SVG sources
+store/                       Screenshots and promo image (rendered from store/src/)
+tests/                       Local test server and test pages
+tools/                       Packaging and asset rendering scripts (not part of the extension)
+docs/                        Manual test checklist, Chrome Web Store notes
+```
+
+| Command | What it does |
 |---|---|
-| `python tests/server.py` | Server uji lokal di http://127.0.0.1:8000/ (lihat [TESTING.md](TESTING.md)) |
-| `python tools/package.py` | Membuat `dist/paperlift-<versi>.zip` untuk Chrome Web Store |
-| `node tools/render-assets.mjs` | Merender ikon, screenshot, dan promo tile dari `brand/logo.svg` (butuh Chrome; Node 20 tambah `--experimental-websocket`) |
+| `python tests/server.py` | Starts a local test site at http://127.0.0.1:8000/ with pdf.js iframes, protected (403) files, odd file names and slide decks. See [docs/TESTING.md](docs/TESTING.md). |
+| `python tools/package.py` | Builds `dist/paperlift-<version>.zip` with only the runtime files. This is the ZIP attached to releases. |
+| `node tools/render-assets.mjs` | Renders the icons, screenshots and promo image from `brand/*.svg` with headless Chrome. On Node 20, add `--experimental-websocket`. |
 
-Panduan upload ke Web Store, termasuk teks listing dan alasan tiap permission, ada di [STORE.md](STORE.md).
+**Making a release:** bump `version` in `manifest.json`, run `python tools/package.py`,
+then create a GitHub release and attach the ZIP from `dist/`.
 
-## Merek
+## Credits
 
-| | |
-|---|---|
-| Nama | **Paperlift**: "mengangkat" lembar kertas (PDF dan slide) dari halaman web |
-| Logo | `brand/logo.svg`: lembar kertas yang terangkat dari halaman, dengan sudut terlipat dan panah unduh (`brand/logo-small.svg` untuk ikon kecil) |
-| Warna utama | Hijau-teal tua `#24524F` |
-| Aksen | Terakota `#E08A5F` (dipakai hemat) |
-| Kertas | `#F7F4EE` |
-
-## Lisensi pihak ketiga
-- [pdf-lib](https://pdf-lib.js.org/) 1.17.1 — MIT, lihat `vendor/pdf-lib.LICENSE.md`.
+- [pdf-lib](https://pdf-lib.js.org/) 1.17.1 by Andrew Dillon, MIT License
+  (see [vendor/pdf-lib.LICENSE.md](vendor/pdf-lib.LICENSE.md)).
+- Logo and icons: original artwork made for Paperlift (`brand/`).

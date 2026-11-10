@@ -31,10 +31,10 @@ store/                       Screenshot 1280×800 + promo 440×280 (dirender) da
 tools/render-assets.mjs      Render ikon + aset store via Chrome headless (Node; bukan bagian extension)
 tools/package.py             Buat dist/paperlift-<versi>.zip untuk Web Store (hanya file runtime)
 tests/server.py              Server uji lokal (Python stdlib) + tests/pages/*.html
-README.md                    Instalasi, cara pakai, batasan, troubleshooting, merek
-TESTING.md                   Checklist uji manual (Pass/Fail diisi pengguna)
-PRIVACY.md                   Kebijakan privasi (URL-nya dipakai di Web Store)
-STORE.md                     Panduan upload + teks listing + justifikasi permission
+README.md                    (English) fitur, instalasi step by step, cara pakai, terjemahan label UI, troubleshooting
+PRIVACY.md                   (English) kebijakan privasi
+docs/TESTING.md              (English) checklist uji manual (Pass/Fail diisi pengguna)
+docs/CHROME-WEB-STORE.md     (English) catatan jika kelak dipublikasikan ke Web Store
 ```
 
 ## Cara load extension
@@ -142,5 +142,9 @@ Pengguna menyetujui Fase 2–5 ("sudah bagus") dan meminta push + rilis ke Web S
 - **Paket store** hanya berisi background, content, offscreen, popup, lib, vendor, icons, manifest.
 - **Ikon 128 px** memakai padding ±10 px (area gambar ±100 px) mengikuti panduan Web Store;
   16/32 px tanpa padding dan memakai logo-small.svg agar tajam di toolbar.
+- **2026-11-10: distribusi lewat GitHub saja** (bukan Chrome Web Store; pengguna tidak ingin
+  bayar USD 5). Pengguna mengunduh zip dari GitHub Releases (`dist/paperlift-<versi>.zip`)
+  lalu Load unpacked. Dokumen repo (README, PRIVACY, docs/) berbahasa Inggris; teks UI popup
+  tetap bahasa Indonesia (README memuat tabel terjemahan label). CLAUDE.md tetap bahasa Indonesia.
 - **Logo Paperlift**: lembar depan miring 7° (terangkat) dengan lipatan terakota dan panah
   unduh, lembar belakang transparan 28% sebagai "halaman" yang ditinggalkan.
